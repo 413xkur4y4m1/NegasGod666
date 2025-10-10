@@ -24,7 +24,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const getInitials = (name: string) => {
-    if (!name) return 'U';
+    if (!name) return 'A';
     const names = name.split(' ');
     if (names.length > 1 && names[1]) {
       return `${names[0][0]}${names[names.length - 1][0]}`;
@@ -61,16 +61,18 @@ export default function ProfilePage() {
         // Update Firebase Auth profile
         if (firebaseUser) {
             await updateProfile(firebaseUser, {
-                photoURL: photoURL,
+                photoURL: photoURL || null,
             });
         }
         
 
         // Update Realtime Database
-        const userDbRef = ref(db, `alumno/${user.matricula}`);
-        await update(userDbRef, {
-            photoURL: photoURL
-        });
+        if(user.provider !== 'manual') {
+            const userDbRef = ref(db, `alumno/${user.matricula}`);
+            await update(userDbRef, {
+                photoURL: photoURL || null,
+            });
+        }
         
         // Update local user state
         const updatedUser = { ...user, photoURL: photoURL };
@@ -151,4 +153,3 @@ export default function ProfilePage() {
     </Card>
   );
 }
-

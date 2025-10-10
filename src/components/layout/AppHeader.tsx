@@ -35,12 +35,24 @@ export function AppHeader() {
 
   const getBreadcrumbs = () => {
     const paths = pathname.split('/').filter((p) => p);
-    const breadcrumbs = paths.map((path, index) => {
+    let breadcrumbs = paths.map((path, index) => {
       const href = '/' + paths.slice(0, index + 1).join('/');
-      const label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ');
+      let label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ');
+      // If the path is 'admin', keep it as the root for admin users
+      if (path === 'admin' && isAdmin) {
+        return null;
+      }
       return { href, label };
-    });
-    return [{ href: isAdmin ? '/admin' : '/dashboard', label: 'Home' }, ...breadcrumbs];
+    }).filter(Boolean) as { href: string; label: string }[];
+  
+    const homeCrumb = { href: isAdmin ? '/admin' : '/dashboard', label: 'Home' };
+  
+    // If we are on a home page, just show home.
+    if(pathname === homeCrumb.href || (isAdmin && pathname === '/admin')){
+       return [homeCrumb];
+    }
+  
+    return [homeCrumb, ...breadcrumbs];
   };
 
   const breadcrumbs = getBreadcrumbs();
@@ -48,7 +60,7 @@ export function AppHeader() {
   const getInitials = (name: string) => {
     if (!name) return 'U';
     const names = name.split(' ');
-    if (names.length > 1) {
+    if (names.length > 1 && names[1]) {
       return `${names[0][0]}${names[names.length - 1][0]}`;
     }
     return name.substring(0, 2);
@@ -70,7 +82,7 @@ export function AppHeader() {
       <div className="flex items-center gap-4">
         <Home className="h-4 w-4 text-muted-foreground" />
         {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.href} className="flex items-center gap-2 text-sm">
+          <div key={`${crumb.href}-${index}`} className="flex items-center gap-2 text-sm">
             {index > 0 && <span className="text-muted-foreground">/</span>}
             <Link
               href={crumb.href}
@@ -134,6 +146,14 @@ export function AppHeader() {
             {!isAdmin && (
                 <DropdownMenuItem asChild>
                 <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                </Link>
+                </DropdownMenuItem>
+            )}
+            {isAdmin && (
+                <DropdownMenuItem asChild>
+                <Link href="/admin/profile">
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
                 </Link>
