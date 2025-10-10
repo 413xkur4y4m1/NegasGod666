@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { onAuthStateChanged, signOut as firebaseSignOut, User as FirebaseUser, signInWithPopup, OAuthProvider, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, signInWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, signOut as firebaseSignOut, User as FirebaseUser, signInWithPopup, OAuthProvider, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { ref, get, set, update } from 'firebase/database';
 
 import { auth, db } from '@/lib/firebase';
@@ -46,10 +46,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       appUser = { ...dbUser, ...updates, isAdmin: userIsAdmin, uid: fbUser.uid };
     } else {
       // Create new user for social sign-in
+      const names = fbUser.displayName?.split(' ') || ['Nuevo', 'Usuario'];
+      const nombre = names.slice(0, -2).join(' ') || names[0];
+      const apellido_p = names.length > 2 ? names[names.length-2] : names[1] || '';
+      const apellido_m = names.length > 2 ? names[names.length-1] : '';
+
       appUser = {
         uid: fbUser.uid,
         matricula,
-        nombre: fbUser.displayName || 'Nuevo Usuario',
+        nombre: nombre,
+        apellido_p: apellido_p,
+        apellido_m: apellido_m,
         correo: fbUser.email!,
         isAdmin: userIsAdmin,
         provider: (fbUser.providerData[0]?.providerId as 'microsoft.com') || 'password',
@@ -116,10 +123,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         tenant: 'common',
         prompt: 'select_account',
     });
-    const result = await signInWithPopup(auth, provider);
-    await handleUserSession(result.user);
-    router.push(isAdmin ? '/admin' : '/dashboard');
-    return result;
+    try {
+      const result = await signInWithPopup(auth, provider);
+      await handleUserSession(result.user);
+      router.push(isAdmin ? '/admin' : '/dashboard');
+      return result;
+    } catch(error: any) {
+        let description = 'No se pudo iniciar sesión con Microsoft.';
+        if (error.code === 'auth/account-exists-with-different-credential') {
+          description = 'Ya existe una cuenta con este correo electrónico pero con un método de inicio de sesión diferente.';
+        } else if (error.code === 'auth/popup-closed-by-user') {
+          description = 'El proceso de inicio de sesión fue cancelado.'
+        }
+        throw new Error(description);
+    }
   };
   
   const handleLoginWithMatricula = async (matricula: string, password: string) => {
@@ -176,7 +193,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { user: fbUser } = await createUserWithEmailAndPassword(auth, userData.correo, userData.password);
 
-    const newUser: Partial<User> = {
+    const displayName = `${userData.nombre} ${userData.apellido_p} ${userData.apellido_m}`;
+    await updateProfile(fbUser, { displayName });
+
+
+    const newUser: Omit<User, 'isAdmin'> = {
         uid: fbUser.uid,
         matricula: userData.matricula,
         nombre: userData.nombre,
@@ -187,7 +208,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         chatbotName: userData.chatbotName,
         photoURL: fbUser.photoURL || null,
         provider: 'password',
-        isAdmin: false,
         fecha_registro: new Date().toISOString(),
         ultimo_acceso: new Date().toISOString(),
     };

@@ -45,6 +45,11 @@ export default function ProfilePage() {
         toast({ variant: 'destructive', title: 'Error', description: 'No estás autenticado.' });
         return;
     }
+    
+    if(!newPhoto){
+        toast({ title: 'Sin cambios', description: 'No has seleccionado una nueva foto.' });
+        return;
+    }
 
     setIsLoading(true);
 
@@ -61,18 +66,18 @@ export default function ProfilePage() {
         // Update Firebase Auth profile
         if (firebaseUser) {
             await updateProfile(firebaseUser, {
-                photoURL: photoURL,
+                photoURL: photoURL || null,
             });
         }
 
         // Update Realtime Database
         const userDbRef = ref(db, `alumno/${user.matricula}`);
         await update(userDbRef, {
-            photoURL: photoURL
+            photoURL: photoURL || null
         });
         
         // Update local user state
-        const updatedUser = { ...user, photoURL: photoURL };
+        const updatedUser = { ...user, photoURL: photoURL || null };
         setUser(updatedUser);
         localStorage.setItem('userData', JSON.stringify(updatedUser));
 
