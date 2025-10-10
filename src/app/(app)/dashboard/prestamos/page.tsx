@@ -24,7 +24,10 @@ export default function PrestamosPage() {
     const unsubscribe = onValue(loansRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const loanList = Object.values(data) as Loan[];
+        const loanList = Object.keys(data).map(key => ({
+          id_prestamo: key,
+          ...data[key]
+        })) as Loan[];
         setLoans(loanList.sort((a, b) => {
           const dateA = a.fecha_prestamo ? new Date(a.fecha_prestamo).getTime() : 0;
           const dateB = b.fecha_prestamo ? new Date(b.fecha_prestamo).getTime() : 0;

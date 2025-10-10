@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, GanttChartSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { format, isValid, parseISO } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 export default function LoansPage() {
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -20,7 +20,11 @@ export default function LoansPage() {
     const unsubscribe = onValue(loansRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const loanList = Object.values(data) as Loan[];
+        const loanList = Object.keys(data).map(key => ({
+            id_prestamo: key,
+            ...data[key]
+        })) as Loan[];
+
         setLoans(loanList.sort((a, b) => {
           const dateA = a.fecha_prestamo ? new Date(a.fecha_prestamo).getTime() : 0;
           const dateB = b.fecha_prestamo ? new Date(b.fecha_prestamo).getTime() : 0;
