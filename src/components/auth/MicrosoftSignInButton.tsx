@@ -18,10 +18,16 @@ export function MicrosoftSignInButton() {
       // The AuthProvider will handle redirection
     } catch (error: any) {
       console.error('Microsoft Sign In Error:', error);
+      let description = 'No se pudo iniciar sesión con Microsoft.';
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        description = 'Ya existe una cuenta con este correo electrónico pero con un método de inicio de sesión diferente.';
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        description = 'El proceso de inicio de sesión fue cancelado.'
+      }
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
-        description: error.message || 'No se pudo iniciar sesión con Microsoft.',
+        description: error.message || description,
       });
       setIsLoading(false);
     }

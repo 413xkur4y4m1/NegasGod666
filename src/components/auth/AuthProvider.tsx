@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { onAuthStateChanged, signOut as firebaseSignOut, User as FirebaseUser, signInWithPopup, OAuthProvider, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { onAuthStateChanged, signOut as firebaseSignOut, User as FirebaseUser, signInWithPopup, OAuthProvider, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { ref, get, set, update } from 'firebase/database';
 
 import { auth, db } from '@/lib/firebase';
@@ -17,28 +17,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const cleanupAuthState = useCallback(() => {
+    setUser(null);
+    setIsAdmin(false);
+    setFirebaseUser(null);
+    localStorage.removeItem('userData');
+  }, []);
+
+  const handleUserSession = useCallback(async (fbUser: FirebaseUser) => {
+    const adminEmails = ['admin@lasalle.edu.mx'];
+    const userIsAdmin = adminEmails.includes(fbUser.email || '');
+
+    const matricula = fbUser.email!.split('@')[0];
+    const userRef = ref(db, `alumno/${matricula}`);
+    const snapshot = await get(userRef);
+
+    let appUser: User;
+
+    if (snapshot.exists()) {
+      // Update existing user
+      const dbUser = snapshot.val();
+      const updates = {
+        ultimo_acceso: new Date().toISOString(),
+        nombre: fbUser.displayName || dbUser.nombre,
+        photoURL: fbUser.photoURL || dbUser.photoURL || null, // Ensure photoURL is not undefined
+      };
+      await update(userRef, updates);
+      appUser = { ...dbUser, ...updates, isAdmin: userIsAdmin, uid: fbUser.uid };
+    } else {
+      // Create new user for social sign-in
+      appUser = {
+        uid: fbUser.uid,
+        matricula,
+        nombre: fbUser.displayName || 'Nuevo Usuario',
+        correo: fbUser.email!,
+        isAdmin: userIsAdmin,
+        provider: (fbUser.providerData[0]?.providerId as 'microsoft.com') || 'password',
+        fecha_registro: new Date().toISOString(),
+        ultimo_acceso: new Date().toISOString(),
+        photoURL: fbUser.photoURL || null,
+      };
+      await set(userRef, appUser);
+    }
+    
+    setUser(appUser);
+    setIsAdmin(userIsAdmin);
+    localStorage.setItem('userData', JSON.stringify(appUser));
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      setFirebaseUser(fbUser);
       if (fbUser) {
-        // User is signed in with Firebase Auth (e.g., Microsoft)
+        setFirebaseUser(fbUser);
         await handleUserSession(fbUser);
       } else {
-        // No Firebase user, check for manual login in localStorage
-        const manualUser = loadManualAuthState();
-        if (manualUser) {
-            setUser(manualUser);
-            setIsAdmin(manualUser.isAdmin);
+        const manualUserData = localStorage.getItem('userData');
+        if (manualUserData) {
+          try {
+            const manualUser = JSON.parse(manualUserData);
+            if (manualUser.provider === 'manual') {
+              setUser(manualUser);
+              setIsAdmin(manualUser.isAdmin);
+            } else {
+              cleanupAuthState();
+            }
+          } catch (e) {
+            cleanupAuthState();
+          }
         } else {
-            setUser(null);
-            setIsAdmin(false);
+          cleanupAuthState();
         }
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [handleUserSession, cleanupAuthState]);
   
   useEffect(() => {
     if (!loading) {
@@ -55,68 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user, loading, pathname, router]);
-
-  const loadManualAuthState = (): User | null => {
-    try {
-        const userData = localStorage.getItem('userData');
-        if (userData) {
-            return JSON.parse(userData);
-        }
-    } catch (e) {
-        console.error("Error loading manual auth state", e);
-        cleanupAuthState();
-    }
-    return null;
-  }
-  
-  const cleanupAuthState = () => {
-    setUser(null);
-    setIsAdmin(false);
-    localStorage.removeItem('userData');
-  }
-
-  const handleUserSession = async (fbUser: FirebaseUser) => {
-    const adminEmails = ['admin@lasalle.edu.mx'];
-    const userIsAdmin = adminEmails.includes(fbUser.email || '');
-
-    const matricula = fbUser.email!.split('@')[0];
-    const userRef = ref(db, `alumno/${matricula}`);
-    const snapshot = await get(userRef);
-
-    let appUser: User;
-
-    if (snapshot.exists()) {
-      // Update existing user
-      const dbUser = snapshot.val();
-      const updates = {
-        ultimo_acceso: new Date().toISOString(),
-        nombre: fbUser.displayName || dbUser.nombre,
-        photoURL: fbUser.photoURL || dbUser.photoURL,
-      };
-      await update(userRef, updates);
-      appUser = { ...dbUser, ...updates, isAdmin: userIsAdmin, uid: fbUser.uid };
-    } else {
-      // Create new user
-      appUser = {
-        uid: fbUser.uid,
-        matricula,
-        nombre: fbUser.displayName || 'Nuevo Usuario',
-        correo: fbUser.email!,
-        isAdmin: userIsAdmin,
-        provider: (fbUser.providerData[0]?.providerId as 'microsoft.com') || 'password',
-        fecha_registro: new Date().toISOString(),
-        ultimo_acceso: new Date().toISOString(),
-        photoURL: fbUser.photoURL || null,
-      };
-      await set(userRef, appUser);
-    }
-    
-    // Store in our state
-    setUser(appUser);
-    setIsAdmin(userIsAdmin);
-    // Also store in local storage for consistency if needed
-    localStorage.setItem('userData', JSON.stringify(appUser));
-  };
   
   const handleMicrosoftSignIn = async () => {
     const provider = new OAuthProvider('microsoft.com');
@@ -126,14 +118,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const result = await signInWithPopup(auth, provider);
     await handleUserSession(result.user);
-    router.push(adminEmails.includes(result.user.email || '') ? '/admin' : '/dashboard');
+    router.push(isAdmin ? '/admin' : '/dashboard');
     return result;
   };
   
-  const adminEmails = ['admin@lasalle.edu.mx'];
-
   const handleLoginWithMatricula = async (matricula: string, password: string) => {
-    // Admin login
+    // Admin manual login
     if (matricula === 'admin@lasalle.edu.mx' && password === 'admin123') {
         const adminUser: User = {
             uid: 'admin',
@@ -152,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
     }
 
-    // Student login
+    // Student password login
     const userRef = ref(db, `alumno/${matricula}`);
     const snapshot = await get(userRef);
 
@@ -162,13 +152,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const dbUser = snapshot.val();
     if (dbUser.provider !== 'password') {
-        throw new Error(`Esta cuenta está registrada con ${dbUser.provider}. Por favor, inicia sesión con ese método.`);
+        throw new Error(`Esta cuenta fue registrada con Microsoft. Por favor, inicia sesión con ese método.`);
     }
 
-    // This is not secure, but mimics the user's provided JS.
-    // Firebase Auth should be used for password auth.
-    // This is a temporary solution based on the request.
-    const { user: fbUser } = await auth.signInWithEmailAndPassword(dbUser.correo, password).catch(() => {
+    const { user: fbUser } = await signInWithEmailAndPassword(auth, dbUser.correo, password).catch(() => {
         throw new Error("Contraseña incorrecta.");
     });
     
@@ -225,6 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     handleLoginWithMatricula,
     handleRegister,
     signOut,
+    setUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -26,7 +26,7 @@ export default function ProfilePage() {
   const getInitials = (name: string) => {
     if (!name) return 'U';
     const names = name.split(' ');
-    if (names.length > 1) {
+    if (names.length > 1 && names[1]) {
       return `${names[0][0]}${names[names.length - 1][0]}`;
     }
     return name.substring(0, 2);
@@ -41,7 +41,7 @@ export default function ProfilePage() {
   };
 
   const handleProfileUpdate = async () => {
-    if (!firebaseUser || !user) {
+    if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'No estás autenticado.' });
         return;
     }
@@ -59,9 +59,12 @@ export default function ProfilePage() {
         }
 
         // Update Firebase Auth profile
-        await updateProfile(firebaseUser, {
-            photoURL: photoURL,
-        });
+        if (firebaseUser) {
+            await updateProfile(firebaseUser, {
+                photoURL: photoURL,
+            });
+        }
+        
 
         // Update Realtime Database
         const userDbRef = ref(db, `alumno/${user.matricula}`);
@@ -148,3 +151,4 @@ export default function ProfilePage() {
     </Card>
   );
 }
+

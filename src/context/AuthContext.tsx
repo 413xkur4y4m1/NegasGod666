@@ -13,6 +13,7 @@ export interface AuthContextType {
   handleLoginWithMatricula: (matricula: string, password: string) => Promise<void>;
   handleRegister: (userData: any) => Promise<any>;
   signOut: () => Promise<void>;
+  setUser: (user: User | null) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
