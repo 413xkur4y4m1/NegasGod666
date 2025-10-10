@@ -11,34 +11,31 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { get, ref } from 'firebase/database';
+import { db } from '@/lib/firebase';
 
 const ManageMaterialInputSchema = z.object({
-  action: z
+  userQuery: z
     .string()
     .describe(
-      'The action to perform, such as adding a new material or updating an existing one.'
+      'The admin query, can be a request to add material or a question about the data.'
     ),
-  materialDetails: z
-    .string()
-    .describe(
-      'Details about the material, including name, quantity, and other relevant information.'
-    ),
+  context: z.object({
+      loans: z.string().optional().describe("JSON string of all loans."),
+      users: z.string().optional().describe("JSON string of all users."),
+      materials: z.string().optional().describe("JSON string of all materials."),
+  }).optional()
 });
 
 export type ManageMaterialInput = z.infer<typeof ManageMaterialInputSchema>;
 
 const ManageMaterialOutputSchema = z.object({
-  confirmation: z
+  response: z
     .string()
     .describe(
-      'A confirmation message indicating whether the material was successfully added or updated.'
+      'A confirmation message or the answer to the admin query.'
     ),
-  materialId: z
-    .string()
-    .optional()
-    .describe(
-      'The unique identifier of the material, if applicable.  This is not applicable for updates.'
-    ),
+  isDataQuery: z.boolean().describe("Whether the query was a question about data."),
 });
 
 export type ManageMaterialOutput = z.infer<typeof ManageMaterialOutputSchema>;
@@ -51,14 +48,22 @@ const prompt = ai.definePrompt({
   name: 'manageMaterialPrompt',
   input: {schema: ManageMaterialInputSchema},
   output: {schema: ManageMaterialOutputSchema},
-  prompt: `You are an AI assistant helping the administrator to manage the material inventory.
+  prompt: `You are an AI assistant helping an administrator manage a university's material loan system.
 
-  The administrator wants to perform the following action: {{{action}}}
-  Here are the material details provided by the administrator: {{{materialDetails}}}
+Your tasks are to:
+1.  **Answer questions** about the current state of loans, users, and materials based on the provided JSON data context.
+2.  **Extract information** to add or update materials in the inventory.
 
-  Please process the request and respond with a confirmation message.
-  If a new material was added, include the material ID in the response.
-  Ensure that you generate a response that can be parsed as JSON by the client.`,
+- If the user asks a question (e.g., "who has active loans?", "show me users with debts"), analyze the provided JSON data from the 'context' object (loans, users, materials) and provide a clear, concise answer. Set 'isDataQuery' to true.
+- If the user wants to add or update a material (e.g., "add 10 chef knives"), extract the relevant details. Respond with a confirmation like "Action to add material '[details]' has been processed." Set 'isDataQuery' to false.
+
+Admin query: {{{userQuery}}}
+
+Data Context (if available):
+- Loans: {{{context.loans}}}
+- Users: {{{context.users}}}
+- Materials: {{{context.materials}}}
+`,
 });
 
 const manageMaterialFlow = ai.defineFlow(

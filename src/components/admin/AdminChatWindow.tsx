@@ -11,6 +11,9 @@ import { ChatMessage as ChatMessageType } from '@/lib/types';
 import { AdminChatMessage } from './AdminChatMessage';
 import { nanoid } from 'nanoid';
 import { manageMaterial } from '@/ai/flows/admin-chatbot-material-management';
+import { get, ref } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { createMaterial } from '@/lib/actions';
 
 export function AdminChatWindow() {
   const { user } = useAuth();
@@ -23,7 +26,7 @@ export function AdminChatWindow() {
       
 Puedes decir cosas como:
 - "Agrega un nuevo material: 10 Cuchillos de chef, marca Tramontina, precio 500"
-- "Muéstrame los alumnos con adeudos"`,
+- "Muéstrame los alumnos con préstamos activos"`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -51,28 +54,70 @@ Puedes decir cosas como:
     setIsLoading(true);
 
     try {
-      // Basic command parsing to decide which flow to call
-      let response;
-      if (input.toLowerCase().includes('agrega') || input.toLowerCase().includes('añade')) {
-         response = await manageMaterial({
-            action: 'add',
-            materialDetails: input
-         });
-         const newAssistantMessage: ChatMessageType = {
-            id: nanoid(),
-            role: 'assistant',
-            content: `${response.confirmation} ${response.materialId ? `(ID: ${response.materialId})` : ''}`,
-         };
-         setMessages((prev) => [...prev, newAssistantMessage]);
-      } else {
-        // Placeholder for other admin commands (get debts, users, etc.)
-        const placeholderMessage: ChatMessageType = {
-            id: nanoid(),
-            role: 'assistant',
-            content: `Entendido. Procesando tu solicitud: "${input}". Esta funcionalidad está en desarrollo.`,
-        };
-        setMessages((prev) => [...prev, placeholderMessage]);
+      // Fetch context data for the AI
+      const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
+        get(ref(db, 'prestamos')),
+        get(ref(db, 'alumno')),
+        get(ref(db, 'materiales')),
+      ]);
+
+      const context = {
+        loans: JSON.stringify(loansSnapshot.val() || {}),
+        users: JSON.stringify(usersSnapshot.val() || {}),
+        materials: JSON.stringify(materialsSnapshot.val() || {}),
+      };
+      
+      const response = await manageMaterial({
+        userQuery: input,
+        context: context,
+      });
+
+      let assistantResponseContent = response.response;
+
+      // If the AI identifies it's not a data query, we assume it's a material management task
+      if (!response.isDataQuery) {
+        // Simple parsing for "add material" command as a PoC
+        if (input.toLowerCase().includes('agrega') || input.toLowerCase().includes('añade')) {
+           try {
+             // This is a simplified parser. A real app would use a more robust solution.
+             const details = input.split(':')[1]?.trim().split(',');
+             const name = details[0].trim().substring(details[0].trim().indexOf(' ')).trim();
+             const quantity = parseInt(details[0].trim().split(' ')[0]);
+             const brand = details.find(d => d.includes('marca'))?.split('marca')[1].trim() || 'N/A';
+             const price = parseInt(details.find(d => d.includes('precio'))?.split('precio')[1].trim()) || 0;
+
+             await createMaterial({
+                nombre: name,
+                cantidad: quantity,
+                marca: brand,
+                precio_unitario: price,
+                precio_ajustado: price,
+                anio_compra: new Date().getFullYear(),
+                proveedor: 'N/A',
+                tipo: 'N/A',
+             });
+
+             assistantResponseContent = `¡Hecho! Se agregaron ${quantity} unidades de "${name}" al inventario.`;
+
+             toast({
+                title: 'Material Agregado',
+                description: `${name} ha sido añadido al inventario.`,
+             });
+
+           } catch (e: any) {
+              console.error(e);
+              assistantResponseContent = "No pude agregar el material. El formato debe ser: 'Agrega X [nombre], marca [marca], precio [precio]'";
+              toast({ variant: 'destructive', title: 'Error al agregar', description: e.message });
+           }
+        }
       }
+
+      const newAssistantMessage: ChatMessageType = {
+        id: nanoid(),
+        role: 'assistant',
+        content: assistantResponseContent,
+      };
+      setMessages((prev) => [...prev, newAssistantMessage]);
       
     } catch (error: any) {
       console.error(error);
