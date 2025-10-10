@@ -52,7 +52,7 @@ export function AppSidebar() {
   const getInitials = (name: string) => {
     if (!name) return 'U';
     const names = name.split(' ');
-    if (names.length > 1) {
+    if (names.length > 1 && names[1]) {
       return `${names[0][0]}${names[names.length - 1][0]}`;
     }
     return name.substring(0, 2);
@@ -71,15 +71,16 @@ export function AppSidebar() {
             <SidebarMenu>
                 {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <Link href={item.href} legacyBehavior passHref>
                     <SidebarMenuButton
+                        asChild
                         isActive={pathname === item.href}
                         tooltip={{ children: item.label, side: 'right' }}
                     >
+                      <Link href={item.href}>
                         <item.icon className="h-5 w-5" />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                      </Link>
                     </SidebarMenuButton>
-                    </Link>
                 </SidebarMenuItem>
                 ))}
             </SidebarMenu>
