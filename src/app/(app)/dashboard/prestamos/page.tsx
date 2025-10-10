@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 export default function PrestamosPage() {
   const { user } = useAuth();
@@ -25,7 +25,11 @@ export default function PrestamosPage() {
       const data = snapshot.val();
       if (data) {
         const loanList = Object.values(data) as Loan[];
-        setLoans(loanList.sort((a, b) => new Date(b.fecha_prestamo).getTime() - new Date(a.fecha_prestamo).getTime()));
+        setLoans(loanList.sort((a, b) => {
+          const dateA = a.fecha_prestamo ? new Date(a.fecha_prestamo).getTime() : 0;
+          const dateB = b.fecha_prestamo ? new Date(b.fecha_prestamo).getTime() : 0;
+          return dateB - dateA;
+        }));
       } else {
         setLoans([]);
       }
@@ -49,6 +53,12 @@ export default function PrestamosPage() {
         return 'default';
     }
   };
+  
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return isValid(date) ? format(date, 'dd/MM/yyyy') : 'Fecha inválida';
+  }
 
   return (
     <Card>
@@ -75,8 +85,8 @@ export default function PrestamosPage() {
               {loans.map((loan) => (
                 <TableRow key={loan.id_prestamo}>
                   <TableCell className="font-medium">{loan.nombre_material}</TableCell>
-                  <TableCell>{format(new Date(loan.fecha_prestamo), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell>{format(new Date(loan.fecha_limite), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell>{formatDate(loan.fecha_prestamo)}</TableCell>
+                  <TableCell>{formatDate(loan.fecha_limite)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
                   </TableCell>
