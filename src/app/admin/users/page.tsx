@@ -20,7 +20,10 @@ export default function UsersPage() {
     const unsubscribe = onValue(usersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const userList = Object.values(data) as User[];
+        const userList = Object.keys(data).map(key => ({
+            ...data[key],
+            uid: data[key].uid || key, // Ensure UID is present, fallback to key
+        })) as User[];
         setUsers(userList);
       } else {
         setUsers([]);
