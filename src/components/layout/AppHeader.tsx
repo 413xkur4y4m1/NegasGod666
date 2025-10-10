@@ -1,14 +1,9 @@
+// src/components/layout/AppHeader.tsx
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Home,
-  User,
-  LogOut,
-  Bell,
-  PanelLeft,
-} from 'lucide-react';
+import { Home, User, LogOut, Bell, PanelLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,17 +23,44 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppSidebar } from './AppSidebar';
 import { Logo } from '../shared/Logo';
+import { useEffect, useState } from 'react';
+import { onValue, ref } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { Loan } from '@/lib/types';
+import { differenceInDays, format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function AppHeader() {
   const { user, signOut, isAdmin } = useAuth();
   const pathname = usePathname();
+  const [notifications, setNotifications] = useState<Loan[]>([]);
+
+  useEffect(() => {
+    if (!user || isAdmin) return;
+
+    const loansRef = ref(db, `alumno/${user.matricula}/prestamos`);
+    const unsubscribe = onValue(loansRef, (snapshot) => {
+      const loans = snapshot.val();
+      if (!loans) return;
+
+      const upcomingLoans = Object.values(loans)
+        .filter((loan: any) => {
+            if (loan.estado !== 'activo') return false;
+            const diff = differenceInDays(parseISO(loan.fecha_limite), new Date());
+            return diff >= 0 && diff <= 3;
+        }) as Loan[];
+
+      setNotifications(upcomingLoans);
+    });
+
+    return () => unsubscribe();
+  }, [user, isAdmin]);
 
   const getBreadcrumbs = () => {
     const paths = pathname.split('/').filter((p) => p);
     let breadcrumbs = paths.map((path, index) => {
       const href = '/' + paths.slice(0, index + 1).join('/');
       let label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ');
-      // If the path is 'admin', keep it as the root for admin users
       if (path === 'admin' && isAdmin) {
         return null;
       }
@@ -47,7 +69,6 @@ export function AppHeader() {
   
     const homeCrumb = { href: isAdmin ? '/admin' : '/dashboard', label: 'Home' };
   
-    // If we are on a home page, just show home.
     if(pathname === homeCrumb.href || (isAdmin && pathname === '/admin')){
        return [homeCrumb];
     }
@@ -65,6 +86,16 @@ export function AppHeader() {
     }
     return name.substring(0, 2);
   };
+  
+  const formatTimeAgo = (dateString: string) => {
+      const date = parseISO(dateString);
+      const now = new Date();
+      const diffDays = differenceInDays(date, now);
+
+      if (diffDays === 0) return 'Hoy';
+      if (diffDays === 1) return 'Mañana';
+      return `en ${diffDays} días`;
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -99,30 +130,38 @@ export function AppHeader() {
       </div>
 
       <div className="ml-auto flex items-center gap-4">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
-              </span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium leading-none">Notificaciones</h4>
-                <p className="text-sm text-muted-foreground">
-                  Tienes notificaciones sobre tus préstamos.
-                </p>
-              </div>
-               <div className="text-sm p-2 bg-yellow-100/50 border border-yellow-200 rounded-md text-yellow-800">
-                Tu préstamo del material 'Cazo cónico' vence en 2 días.
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+        {!isAdmin && (
+            <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
+                    </span>
+                )}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+                <div className="grid gap-4">
+                <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Notificaciones</h4>
+                    <p className="text-sm text-muted-foreground">
+                        {notifications.length > 0 ? `Tienes ${notifications.length} préstamos por vencer.` : 'No tienes notificaciones nuevas.'}
+                    </p>
+                </div>
+                <div className="grid gap-2">
+                    {notifications.map(loan => (
+                         <div key={loan.id_prestamo} className="text-sm p-2 bg-yellow-100/50 border border-yellow-200 rounded-md text-yellow-800">
+                           Tu préstamo de <strong>{loan.nombre_material}</strong> vence {formatTimeAgo(loan.fecha_limite)}.
+                        </div>
+                    ))}
+                </div>
+                </div>
+            </PopoverContent>
+            </Popover>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
