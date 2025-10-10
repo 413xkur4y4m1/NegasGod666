@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -32,7 +33,7 @@ import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
 const formSchema = z.object({
-  matricula: z.string().min(1, { message: 'La matrícula o el correo son requeridos.' }),
+  matricula: z.string().min(1, { message: 'La matrícula es requerida.' }),
   password: z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
 });
 
@@ -83,9 +84,9 @@ export default function LoginPage() {
               name="matricula"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Matrícula o Correo de Admin</FormLabel>
+                  <FormLabel>Matrícula</FormLabel>
                   <FormControl>
-                    <Input placeholder="Tu matrícula o correo de admin" {...field} />
+                    <Input placeholder="Tu matrícula" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -112,7 +113,6 @@ export default function LoginPage() {
         </Form>
         <Separator className="my-6" />
         <div className="space-y-4">
-          <p className="text-center text-sm text-muted-foreground">O si eres estudiante</p>
           <MicrosoftSignInButton />
         </div>
       </CardContent>
