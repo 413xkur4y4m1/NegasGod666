@@ -11,8 +11,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { get, ref } from 'firebase/database';
-import { db } from '@/lib/firebase';
 
 const ManageMaterialInputSchema = z.object({
   userQuery: z
