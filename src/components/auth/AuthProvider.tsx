@@ -139,9 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const handleLoginWithMatricula = async (matricula: string, password: string) => {
+  const handleLoginWithMatricula = async (matriculaOrEmail: string, password: string) => {
     // Admin manual login
-    if (matricula === 'admin@lasalle.edu.mx' && password === 'admin123') {
+    if (matriculaOrEmail === 'admin@lasalle.edu.mx' && password === 'admin123') {
         const adminUser: User = {
             uid: 'admin-manual',
             matricula: 'admin',
@@ -160,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Student password login
+    const matricula = matriculaOrEmail.split('@')[0];
     const userRef = ref(db, `alumno/${matricula}`);
     const snapshot = await get(userRef);
 
