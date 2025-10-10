@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updates = {
         ultimo_acceso: new Date().toISOString(),
         nombre: fbUser.displayName || dbUser.nombre,
-        photoURL: fbUser.photoURL || dbUser.photoURL || null, // Ensure photoURL is not undefined
+        photoURL: fbUser.photoURL || dbUser.photoURL || null,
       };
       await update(userRef, updates);
       appUser = { ...dbUser, ...updates, isAdmin: userIsAdmin, uid: fbUser.uid };
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Admin manual login
     if (matricula === 'admin@lasalle.edu.mx' && password === 'admin123') {
         const adminUser: User = {
-            uid: 'admin',
+            uid: 'admin-manual',
             matricula: 'admin',
             nombre: 'Administrador',
             correo: 'admin@lasalle.edu.mx',
@@ -218,6 +218,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    const manualUserData = localStorage.getItem('userData');
+    if (manualUserData) {
+        const manualUser = JSON.parse(manualUserData);
+        if (manualUser.provider === 'manual') {
+            cleanupAuthState();
+            router.push('/');
+            return;
+        }
+    }
     await firebaseSignOut(auth);
     cleanupAuthState();
     router.push('/');

@@ -32,7 +32,7 @@ import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
 const formSchema = z.object({
-  matricula: z.string().min(1, { message: 'La matrícula es requerida.' }),
+  matricula: z.string().min(1, { message: 'La matrícula o el correo son requeridos.' }),
   password: z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
 });
 
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Matrícula o Correo de Admin</FormLabel>
                   <FormControl>
-                    <Input placeholder="Tu matrícula o correo" {...field} />
+                    <Input placeholder="Tu matrícula o correo de admin" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
