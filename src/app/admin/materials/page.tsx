@@ -64,7 +64,7 @@ export default function MaterialsPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                         <Image 
-                            src={material.imageUrl || `https://picsum.photos/seed/${material.id}/40/40`}
+                            src={material.imageUrl?.startsWith('/uploads/') ? material.imageUrl : `/uploads/default-${material.id}.jpg`}
                             alt={material.nombre}
                             width={40}
                             height={40}

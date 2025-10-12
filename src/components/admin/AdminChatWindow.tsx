@@ -11,6 +11,7 @@ import { ChatMessage as ChatMessageType } from '@/lib/types';
 import { AdminChatMessage } from './AdminChatMessage';
 import { nanoid } from 'nanoid';
 import { manageMaterial } from '@/ai/flows/admin-chatbot-material-management';
+import { sendNotification } from '@/ai/flows/notification-sender';
 import { get, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { createMaterial } from '@/lib/actions';
@@ -26,7 +27,9 @@ export function AdminChatWindow() {
       
 Puedes decir cosas como:
 - "Agrega un nuevo material: 10 Cuchillos de chef, marca Tramontina, precio 500"
-- "Muéstrame los alumnos con préstamos activos"`,
+- "Muéstrame los alumnos con préstamos activos"
+- "Envía una notificación a Daniel Alejandro sobre el material perdido"
+- "Notifica a los estudiantes con adeudos pendientes"`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -67,26 +70,56 @@ Puedes decir cosas como:
         materials: JSON.stringify(materialsSnapshot.val() || {}),
       };
       
-      const response = await manageMaterial({
-        userQuery: input,
-        context: context,
-      });
+      // Detectar si es una solicitud de notificación
+      const isNotificationRequest = input.toLowerCase().includes('notific') || 
+                                    input.toLowerCase().includes('avisa') || 
+                                    input.toLowerCase().includes('envia') || 
+                                    input.toLowerCase().includes('alerta') ||
+                                    input.toLowerCase().includes('correo') ||
+                                    input.toLowerCase().includes('email') ||
+                                    input.toLowerCase().includes('mensaje') ||
+                                    input.toLowerCase().includes('comunicar') ||
+                                    input.toLowerCase().includes('adeudo');
+      
+      let assistantResponseContent;
+      
+      if (isNotificationRequest) {
+        // Usar el flujo de notificaciones
+        const notificationResponse = await sendNotification({
+          userQuery: input,
+          context: context,
+        });
+        
+        assistantResponseContent = notificationResponse.response;
+        
+        toast({
+          title: '¡Notificación enviada!',
+          description: `Se ha enviado una notificación a ${notificationResponse.notification.recipientName}`,
+        });
+      } else {
+        // Usar el flujo de gestión de materiales
+        const response = await manageMaterial({
+          userQuery: input,
+          context: context,
+        });
+        
+        assistantResponseContent = response.response;
 
-      let assistantResponseContent = response.response;
+        // If the AI identifies it's not a data query, we assume it's a material management task
+        if (!response.isDataQuery) {
+          // Simple parsing for "add material" command as a PoC
+          if (input.toLowerCase().includes('agrega') || input.toLowerCase().includes('añade')) {
+            try {
+              // This is a simplified parser. A real app would use a more robust solution.
+              const details = input.split(':')[1]?.trim().split(',');
+              const name = details[0].trim().substring(details[0].trim().indexOf(' ')).trim();
+              const quantity = parseInt(details[0].trim().split(' ')[0]);
+              const brandDetail = details.find(d => d.includes('marca'));
+              const brand = brandDetail ? brandDetail.split('marca')[1].trim() : 'N/A';
+              const priceDetail = details.find(d => d.includes('precio'));
+              const price = priceDetail ? parseInt(priceDetail.split('precio')[1].trim()) : 0;
 
-      // If the AI identifies it's not a data query, we assume it's a material management task
-      if (!response.isDataQuery) {
-        // Simple parsing for "add material" command as a PoC
-        if (input.toLowerCase().includes('agrega') || input.toLowerCase().includes('añade')) {
-           try {
-             // This is a simplified parser. A real app would use a more robust solution.
-             const details = input.split(':')[1]?.trim().split(',');
-             const name = details[0].trim().substring(details[0].trim().indexOf(' ')).trim();
-             const quantity = parseInt(details[0].trim().split(' ')[0]);
-             const brand = details.find(d => d.includes('marca'))?.split('marca')[1].trim() || 'N/A';
-             const price = parseInt(details.find(d => d.includes('precio'))?.split('precio')[1].trim()) || 0;
-
-             await createMaterial({
+              await createMaterial({
                 nombre: name,
                 cantidad: quantity,
                 marca: brand,
@@ -95,22 +128,26 @@ Puedes decir cosas como:
                 anio_compra: new Date().getFullYear(),
                 proveedor: 'N/A',
                 tipo: 'N/A',
-             });
+              });
 
-             assistantResponseContent = `¡Hecho! Se agregaron ${quantity} unidades de "${name}" al inventario.`;
+              assistantResponseContent = `¡Hecho! Se agregaron ${quantity} unidades de "${name}" al inventario.`;
 
-             toast({
+              toast({
                 title: 'Material Agregado',
                 description: `${name} ha sido añadido al inventario.`,
-             });
+              });
 
-           } catch (e: any) {
+            } catch (e: any) {
               console.error(e);
               assistantResponseContent = "No pude agregar el material. El formato debe ser: 'Agrega X [nombre], marca [marca], precio [precio]'";
               toast({ variant: 'destructive', title: 'Error al agregar', description: e.message });
-           }
+            }
+          }
         }
       }
+
+      // If the AI identifies it's not a data query, we assume it's a material management task
+      // Este código ya no es necesario aquí porque se movió al bloque else del manejo de notificaciones
 
       const newAssistantMessage: ChatMessageType = {
         id: nanoid(),

@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { saveBase64Image } from '@/lib/file-storage';
 
 const MaterialImageEnrichmentInputSchema = z.object({
   materialName: z.string().describe('The name of the material to generate an image for.'),
@@ -50,6 +51,8 @@ const materialImageEnrichmentFlow = ai.defineFlow(
       throw new Error('Could not generate image.');
     }
 
-    return {imageUrl: media.url};
+    // Guardar la imagen localmente
+    const result = await saveBase64Image(media.url, `${input.materialName.toLowerCase().replace(/\s+/g, '-')}`);
+    return {imageUrl: result.url};
   }
 );

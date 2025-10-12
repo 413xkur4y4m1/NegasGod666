@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from 'firebase/auth';
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { saveFile } from '@/lib/file-storage';
 
 
 export default function ProfilePage() {
@@ -57,10 +57,8 @@ export default function ProfilePage() {
         let photoURL = user.photoURL;
 
         if (newPhoto) {
-            const storage = getStorage();
-            const fileRef = storageRef(storage, `profile-photos/${user.uid}/${newPhoto.name}`);
-            const snapshot = await uploadBytes(fileRef, newPhoto);
-            photoURL = await getDownloadURL(snapshot.ref);
+            const { url } = await saveFile(newPhoto, `${user.uid}-${newPhoto.name}`);
+            photoURL = url;
         }
 
         // Update Firebase Auth profile

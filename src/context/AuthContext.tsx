@@ -14,6 +14,7 @@ export interface AuthContextType {
   handleRegister: (userData: any) => Promise<any>;
   signOut: () => Promise<void>;
   setUser: (user: User | null) => void;
+  updateUserProfile: (profileData: { photoURL?: string | null }) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
