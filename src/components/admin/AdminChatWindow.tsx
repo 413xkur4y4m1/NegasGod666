@@ -11,10 +11,11 @@ import { ChatMessage as ChatMessageType } from '@/lib/types';
 import { AdminChatMessage } from './AdminChatMessage';
 import { nanoid } from 'nanoid';
 import { manageMaterial } from '@/ai/flows/admin-chatbot-material-management';
-import { sendNotification } from '@/ai/flows/notification-sender';
 import { get, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { createMaterial } from '@/lib/actions';
+// Importamos la nueva acción del servidor para notificaciones
+import { processAdminChatNotification } from '@/app/actions/chatNotifications';
 
 export function AdminChatWindow() {
   const { user } = useAuth();
@@ -28,8 +29,10 @@ export function AdminChatWindow() {
 Puedes decir cosas como:
 - "Agrega un nuevo material: 10 Cuchillos de chef, marca Tramontina, precio 500"
 - "Muéstrame los alumnos con préstamos activos"
-- "Envía una notificación a Daniel Alejandro sobre el material perdido"
-- "Notifica a los estudiantes con adeudos pendientes"`,
+- "Envía una notificación de adeudo al estudiante con matrícula ABC123 por el micrófono"
+- "Notifica a los estudiantes sobre devolución pendiente de material audiovisual"
+- "Envía notificación a todos los alumnos que tienen adeudos"
+- "Procesa esta lista de alumnos con adeudos: [seguido de la lista]"`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -79,23 +82,82 @@ Puedes decir cosas como:
                                     input.toLowerCase().includes('email') ||
                                     input.toLowerCase().includes('mensaje') ||
                                     input.toLowerCase().includes('comunicar') ||
-                                    input.toLowerCase().includes('adeudo');
+                                    input.toLowerCase().includes('adeudo') ||
+                                    input.toLowerCase().includes('informa') ||
+                                    input.toLowerCase().includes('contacta') ||
+                                    input.toLowerCase().includes('oficina') ||
+                                    (input.toLowerCase().includes('manda') && 
+                                     (input.toLowerCase().includes('alumno') || 
+                                      input.toLowerCase().includes('estudiante')));
+      
+      // Registrar las operaciones que vamos a realizar para diagnóstico
+      console.log(`[Operación] Tipo de solicitud: ${isNotificationRequest ? 'Notificación' : 'Consulta o acción'}`);
       
       let assistantResponseContent;
       
       if (isNotificationRequest) {
-        // Usar el flujo de notificaciones
-        const notificationResponse = await sendNotification({
-          userQuery: input,
-          context: context,
-        });
-        
-        assistantResponseContent = notificationResponse.response;
-        
-        toast({
-          title: '¡Notificación enviada!',
-          description: `Se ha enviado una notificación a ${notificationResponse.notification.recipientName}`,
-        });
+        // Para notificaciones, utilizamos la nueva Server Action
+        try {
+          console.log(`[AdminChatWindow] Solicitando envío de notificación: "${input}"`);
+          
+          // Verificar si es una solicitud para notificar a todos los estudiantes con adeudos
+          const notifyAll = input.toLowerCase().includes('todos') && 
+                           (input.toLowerCase().includes('alumnos') || input.toLowerCase().includes('estudiantes')) &&
+                           (input.toLowerCase().includes('adeudo') || input.toLowerCase().includes('deben'));
+          
+          // Llamar a la Server Action para procesar la notificación
+          let result;
+          
+          if (notifyAll) {
+            // Importar dinámicamente la función para notificar a todos
+            const { notifyAllStudentsWithDebts } = await import('@/app/actions/chatNotifications');
+            result = await notifyAllStudentsWithDebts();
+          } else {
+            result = await processAdminChatNotification({ input });
+          }
+          
+          if (result.success) {
+            // Si hay detalles de envío múltiple, formatear un mensaje detallado
+            if (result.details) {
+              const { successful, failed } = result.details;
+              assistantResponseContent = `✅ ${result.message}\n\n${successful.length > 0 ? 
+                `**Notificaciones enviadas exitosamente a:**\n${successful.map((s: {nombre: string, matricula: string}) => `- ${s.nombre} (${s.matricula || 'Sin matrícula'})`).join('\n')}` : 
+                ''}${failed.length > 0 ? 
+                `\n\n**No se pudieron enviar notificaciones a:**\n${failed.map((f: {nombre: string, matricula: string, reason: string}) => `- ${f.nombre} (${f.matricula || 'Sin matrícula'}): ${f.reason}`).join('\n')}` : 
+                ''}`;
+            } else {
+              assistantResponseContent = result.message;
+            }
+            
+            toast({
+              title: '¡Notificación enviada!',
+              description: result.message,
+            });
+          } else {
+            assistantResponseContent = result.message;
+            
+            toast({
+              variant: 'destructive',
+              title: 'Error de notificación',
+              description: result.message,
+            });
+          }
+        } catch (error) {
+          console.error("[AdminChatWindow] Error al procesar notificación:", error);
+          
+          // Generar mensaje de error genérico en caso de error no controlado
+          const errorMessage = error instanceof Error 
+            ? `No pude enviar la notificación: ${error.message}` 
+            : "Ocurrió un error inesperado al intentar enviar la notificación.";
+          
+          assistantResponseContent = errorMessage;
+          
+          toast({
+            variant: 'destructive',
+            title: 'Error de sistema',
+            description: errorMessage,
+          });
+        }
       } else {
         // Usar el flujo de gestión de materiales
         const response = await manageMaterial({

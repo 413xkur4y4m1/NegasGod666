@@ -94,20 +94,36 @@ export const notificationTemplates = {
   debtNotification: (studentName: string, studentId: string, materials: Array<{name: string, status: string}>) => ({
     subject: "Notificación de Adeudo de Materiales",
     content: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-        <h2>Notificación de Adeudo</h2>
-        <p>Estimado(a) ${studentName} (${studentId}),</p>
-        <p>Se ha identificado que tienes los siguientes materiales pendientes:</p>
-        <ul>
-          ${materials.map(mat => `
-            <li>
-              <strong>${mat.name}</strong> - Estado: ${mat.status}
-            </li>
-          `).join('')}
-        </ul>
-        <p>Por favor, acude a la brevedad posible para regularizar tu situación.</p>
-        <p>Recuerda que tener adeudos pendientes puede afectar futuros préstamos.</p>
-        <p>Saludos cordiales,<br>Administración de Materiales LaSalle</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; border: 1px solid #ddd; border-radius: 8px;">
+        <div style="background-color: #B3121D; padding: 10px; text-align: center; border-radius: 6px 6px 0 0;">
+          <h2 style="color: white; margin: 0;">Notificación de Adeudo</h2>
+        </div>
+        <div style="padding: 20px;">
+          <p>Estimado(a) <strong>${studentName}</strong>,</p>
+          <p>El sistema ha registrado que tienes pendiente(s) la devolución del siguiente material:</p>
+          
+          <div style="background-color: #f8f8f8; border-left: 4px solid #B3121D; padding: 12px; margin: 15px 0;">
+            ${materials.map(mat => `
+              <div style="margin-bottom: 8px;">
+                <strong style="color: #B3121D;">${mat.name}</strong>
+                <br>
+                <span style="font-size: 14px; color: #555;">Estado: ${mat.status}</span>
+                <br>
+                <span style="font-size: 14px; color: #555;">Referencia: ${studentId}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <p><strong>Acción requerida:</strong> Por favor, acude a la oficina de materiales a la brevedad posible para regularizar tu situación.</p>
+          
+          <p style="font-size: 14px; color: #666;">Recuerda que mantener adeudos pendientes puede afectar la autorización de futuros préstamos y trámites académicos.</p>
+          
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+          
+          <p style="font-size: 14px;">Saludos cordiales,</p>
+          <p style="margin-top: 0; font-weight: bold;">Administración de Materiales<br>Universidad La Salle</p>
+        </div>
+      </div>
       </div>
     `
   }),

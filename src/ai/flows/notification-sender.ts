@@ -4,6 +4,9 @@ import { sendNotificationEmail } from '@/lib/send-notification';
 import { ref, get } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
+// Importamos la versión compatible para entornos cliente/navegador
+import { sendClientNotification } from '@/lib/client-notifications';
+
 const NotificationSenderInputSchema = z.object({
   userQuery: z.string().describe('La instrucción de a quién y qué notificación enviar'),
   context: z.object({
@@ -30,7 +33,16 @@ export async function sendNotification(input: NotificationSenderInput): Promise<
   const result = await notificationSenderFlow(input);
   
   try {
-    await sendNotificationEmail(result.notification);
+    // Determinamos si estamos en el cliente o servidor
+    const isClient = typeof window !== 'undefined';
+    
+    if (isClient) {
+      // En el cliente, usamos la versión compatible con el navegador
+      await sendClientNotification(result.notification);
+    } else {
+      // En el servidor, usamos la versión de servidor
+      await sendNotificationEmail(result.notification);
+    }
     return result;
   } catch (error) {
     console.error('Error al enviar notificación:', error);
@@ -126,6 +138,6 @@ const notificationSenderFlow = ai.defineFlow(
 
 // Ejemplo de uso:
 // sendNotification({
-//   userQuery: "Envía una notificación de adeudo a Daniel Alejandro sobre la bambalina perdida",
+//   userQuery: "Envía una notificación de adeudo al estudiante con matrícula ABC123 sobre el material audiovisual",
 //   context: { /* datos opcionales */ }
 // });

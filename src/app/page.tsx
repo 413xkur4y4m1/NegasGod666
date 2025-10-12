@@ -39,7 +39,10 @@ export default function Home() {
                   <Link href="/signup">Crear Cuenta</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
-                  <Link href="/login">Iniciar Sesión</Link>
+                  <Link href="/login">Acceso Estudiantes</Link>
+                </Button>
+                <Button asChild size="lg" variant="secondary">
+                  <Link href="/admin/login">Portal Administrativo</Link>
                 </Button>
               </div>
             </div>

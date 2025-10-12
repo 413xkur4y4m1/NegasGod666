@@ -116,11 +116,17 @@ export default function LoginPage() {
           <MicrosoftSignInButton />
         </div>
       </CardContent>
-      <CardFooter className="flex justify-center text-sm">
+      <CardFooter className="flex flex-col gap-2 items-center text-sm">
         <p>
           ¿No tienes cuenta?{' '}
           <Link href="/signup" className="font-semibold text-accent hover:underline">
             Regístrate aquí
+          </Link>
+        </p>
+        <p className="text-muted-foreground">
+          ¿Eres administrador?{' '}
+          <Link href="/admin/login" className="font-semibold text-primary hover:underline">
+            Accede al portal administrativo
           </Link>
         </p>
       </CardFooter>

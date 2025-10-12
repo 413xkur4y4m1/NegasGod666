@@ -53,7 +53,7 @@ export default function NotificationTester() {
         <Textarea
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
-          placeholder="Ej: Envía una notificación de adeudo a Daniel Alejandro sobre la bambalina perdida"
+          placeholder="Ej: Envía una notificación de adeudo al estudiante con matrícula ABC123 sobre el equipo de video pendiente"
           className="min-h-[100px]"
         />
       </div>

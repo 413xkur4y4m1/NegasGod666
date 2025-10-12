@@ -11,6 +11,7 @@ export interface AuthContextType {
   isAdmin: boolean;
   handleMicrosoftSignIn: () => Promise<any>;
   handleLoginWithMatricula: (matricula: string, password: string) => Promise<void>;
+  handleAdminLogin: (email: string, password: string) => Promise<User | void>;
   handleRegister: (userData: any) => Promise<any>;
   signOut: () => Promise<void>;
   setUser: (user: User | null) => void;

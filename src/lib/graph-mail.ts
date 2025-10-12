@@ -1,6 +1,5 @@
 import { Client } from '@microsoft/microsoft-graph-client';
 import { ClientSecretCredential } from '@azure/identity';
-import '@microsoft/microsoft-graph-types';
 
 /**
  * Envía un correo electrónico utilizando Microsoft Graph API con autenticación segura por credenciales de cliente.

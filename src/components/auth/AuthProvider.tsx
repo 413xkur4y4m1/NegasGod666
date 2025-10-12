@@ -102,17 +102,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleUserSession, cleanupAuthState]);
   
   useEffect(() => {
-    if (!loading) {
-      if (user) {
-        const publicRoutes = ['/login', '/signup', '/'];
-        if (publicRoutes.includes(pathname)) {
-          router.replace(user.isAdmin ? '/admin' : '/dashboard');
-        }
-      } else {
-        const protectedRoutes = ['/dashboard', '/profile', '/admin'];
-        if (protectedRoutes.some(p => pathname.startsWith(p))) {
-          router.replace('/login');
-        }
+    // Solución para evitar el bucle de redirección
+    
+    // 1. No hacer nada mientras está cargando
+    if (loading) {
+      console.log("AuthProvider - Loading, no hacemos redirecciones");
+      return;
+    }
+
+    // 2. Evitar completamente redirecciones si estamos en páginas de login
+    const loginPages = ['/admin/login', '/login', '/signup'];
+    if (loginPages.includes(pathname)) {
+      console.log(`AuthProvider - Estamos en página de login (${pathname}), no redirigimos`);
+      return;
+    }
+
+    // 3. Lógica de redirección para usuario autenticado
+    if (user) {
+      // Usuario autenticado en página pública que no sea login (ya excluidas arriba)
+      const publicRoutes = ['/'];
+      if (publicRoutes.includes(pathname)) {
+        console.log(`AuthProvider - Usuario autenticado en ruta pública: ${pathname}, redirigiendo a ${user.isAdmin ? '/admin' : '/dashboard'}`);
+        router.replace(user.isAdmin ? '/admin' : '/dashboard');
+      }
+    } else {
+      // 4. Usuario no autenticado intentando acceder a rutas protegidas
+      // Las rutas de login ya están excluidas de redirección arriba
+      if (pathname.startsWith('/admin')) {
+        console.log(`AuthProvider - Usuario no autenticado intentando acceder a: ${pathname}, redirigiendo a /admin/login`);
+        router.replace('/admin/login');
+      } else if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
+        console.log(`AuthProvider - Usuario no autenticado intentando acceder a: ${pathname}, redirigiendo a /login`);
+        router.replace('/login');
       }
     }
   }, [user, loading, pathname, router]);
@@ -139,29 +160,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const handleLoginWithMatricula = async (matriculaOrEmail: string, password: string) => {
-    // Admin manual login
-    if (matriculaOrEmail === 'admin@lasalle.edu.mx' && password === 'admin123') {
-        const adminUser: User = {
-            uid: 'admin-manual',
-            matricula: 'admin',
-            nombre: 'Administrador',
-            correo: 'admin@lasalle.edu.mx',
-            isAdmin: true,
-            provider: 'manual',
-            fecha_registro: new Date().toISOString(),
-            ultimo_acceso: new Date().toISOString(),
-        };
-        setUser(adminUser);
-        setIsAdmin(true);
-        localStorage.setItem('userData', JSON.stringify(adminUser));
-        router.push('/admin');
-        return;
+  // Versión optimizada de handleAdminLogin para evitar bucles
+  const handleAdminLogin = async (email: string, password: string) => {
+    console.log("AuthProvider - Intento de login admin:", email);
+    
+    // Verificar que sea un correo administrativo
+    if (!email.endsWith('@lasalle.edu.mx')) {
+      console.log("AuthProvider - Error: correo no pertenece al dominio");
+      throw new Error('El correo no pertenece al dominio de La Salle.');
     }
 
+    try {
+      // Admin manual login para desarrollo
+      if (email === 'admin@lasalle.edu.mx' && password === 'admin123') {
+          console.log("AuthProvider - Credenciales admin válidas");
+          
+          // Creamos objeto de usuario admin
+          const adminUser: User = {
+              uid: 'admin-manual',
+              matricula: 'admin',
+              nombre: 'Administrador',
+              correo: email,
+              isAdmin: true,
+              provider: 'manual',
+              fecha_registro: new Date().toISOString(),
+              ultimo_acceso: new Date().toISOString(),
+          };
+          
+          // Importante: desactivamos temporalmente las redirecciones automáticas 
+          // para evitar conflictos durante el cambio de estado
+          setLoading(true);
+          
+          // Primero guardar en localStorage para persistencia
+          localStorage.setItem('userData', JSON.stringify(adminUser));
+          
+          // Actualizamos el estado en un orden específico para minimizar renderizados
+          setIsAdmin(true);
+          setUser(adminUser);
+          
+          // Re-habilitamos las redirecciones después de un pequeño delay
+          // esto es crítico para evitar redirecciones prematuras
+          setTimeout(() => {
+            setLoading(false);
+            console.log("AuthProvider - Admin autenticado correctamente, estado actualizado");
+          }, 50);
+          
+          return adminUser; // Retornamos el usuario para indicar éxito
+      }
+      
+      // Aquí se podría agregar la lógica para verificar en Firebase si el email está registrado como admin
+      console.log("AuthProvider - Credenciales de administrador inválidas");
+      throw new Error('Credenciales de administrador inválidas.');
+    } catch (error) {
+      console.error("AuthProvider - Error en login admin:", error);
+      throw error;
+    }
+  };
+  
+  const handleLoginWithMatricula = async (matriculaInput: string, password: string) => {
     // Student password login
-    const matricula = matriculaOrEmail.split('@')[0];
-    const userRef = ref(db, `alumno/${matricula}`);
+    const userRef = ref(db, `alumno/${matriculaInput}`);
     const snapshot = await get(userRef);
 
     if (!snapshot.exists()) {
@@ -233,6 +291,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/');
   };
 
+  const updateUserProfile = async (profileData: { photoURL?: string | null }) => {
+    if (!firebaseUser) return;
+    
+    try {
+      await updateProfile(firebaseUser, profileData);
+      
+      if (user && user.matricula) {
+        const userRef = ref(db, `alumno/${user.matricula}`);
+        await update(userRef, { photoURL: profileData.photoURL });
+        
+        setUser({
+          ...user,
+          photoURL: profileData.photoURL || null
+        });
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     firebaseUser,
@@ -240,9 +319,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin,
     handleMicrosoftSignIn,
     handleLoginWithMatricula,
+    handleAdminLogin,
     handleRegister,
     signOut,
-    setUser
+    setUser,
+    updateUserProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

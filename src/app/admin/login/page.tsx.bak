@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -22,20 +23,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
-// Esquema simple de validación
 const formSchema = z.object({
   email: z.string().email({ message: 'Por favor, introduce un correo válido.' }),
-  password: z.string().min(1, { message: 'La contraseña es obligatoria.' }),
+  password: z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
 });
 
-export default function AdminLoginPageNew() {
+export default function AdminLoginPage() {
+  const { handleAdminLogin } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-
+  const router = useRouter();
+  
+  // Eliminamos el useEffect que podría causar la actualización infinita
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,41 +49,35 @@ export default function AdminLoginPageNew() {
     },
   });
 
-  // Función simplificada de login
+  // Función de login mejorada para evitar problemas de redirección
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    
     try {
       console.log("AdminLoginPage - Intentando login con:", values.email);
+      const adminUser = await handleAdminLogin(values.email, values.password);
       
-      // Validación directa sin hooks ni contextos
-      if (values.email === 'admin@lasalle.edu.mx' && values.password === 'admin123') {
-        console.log("AdminLoginPage - Login exitoso");
+      if (adminUser) {
+        console.log("AdminLoginPage - Login exitoso, preparando redirección a /admin");
         
-        // Crear objeto de usuario admin simplificado
-        const adminUser = {
-          uid: 'admin-manual',
-          matricula: 'admin',
-          nombre: 'Administrador',
-          correo: values.email,
-          isAdmin: true,
-          provider: 'manual',
-          fecha_registro: new Date().toISOString(),
-          ultimo_acceso: new Date().toISOString(),
-        };
+        // Esperamos un momento para asegurar que todos los estados se actualicen correctamente
+        // Este timeout es crucial para evitar problemas de sincronización con el AuthProvider
+        setTimeout(() => {
+          console.log("AdminLoginPage - Ejecutando redirección a /admin");
+          // Usar location.replace para una navegación más limpia que evita la historia del navegador
+          window.location.replace('/admin');
+        }, 100);
         
-        // Guardar en localStorage primero
-        localStorage.setItem('userData', JSON.stringify(adminUser));
-        
-        // Navegar directamente a la página de admin
-        console.log("AdminLoginPage - Redirigiendo a /admin");
-        window.location.href = '/admin';
-        return;
+        return; // Importante para evitar que se siga ejecutando el código
+      } else {
+        // Si no recibimos un usuario pero tampoco un error, algo salió mal
+        console.error("AdminLoginPage - No se recibió información de usuario");
+        toast({
+          variant: 'destructive',
+          title: 'Error de inicio de sesión',
+          description: 'Error al procesar la autenticación',
+        });
+        setIsLoading(false);
       }
-      
-      // Si llegamos aquí, las credenciales son incorrectas
-      throw new Error('Credenciales de administrador inválidas.');
-      
     } catch (error: any) {
       console.error("AdminLoginPage - Error de login:", error);
       toast({
