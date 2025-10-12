@@ -35,7 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let appUser: User;
 
     if (snapshot.exists()) {
-      // Update existing user
       const dbUser = snapshot.val();
       const updates = {
         ultimo_acceso: new Date().toISOString(),
@@ -45,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await update(userRef, updates);
       appUser = { ...dbUser, ...updates, isAdmin: userIsAdmin, uid: fbUser.uid };
     } else {
-      // Create new user for social sign-in
       const names = fbUser.displayName?.split(' ') || ['Nuevo', 'Usuario'];
       const nombre = names.slice(0, -2).join(' ') || names[0];
       const apellido_p = names.length > 2 ? names[names.length-2] : names[1] || '';
@@ -78,13 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setFirebaseUser(fbUser);
         await handleUserSession(fbUser);
       } else {
-        const manualUserData = localStorage.getItem('userData');
-        if (manualUserData) {
+        const storedUserData = localStorage.getItem('userData');
+        if (storedUserData) {
           try {
-            const manualUser = JSON.parse(manualUserData);
-            if (manualUser.provider === 'manual') {
-              setUser(manualUser);
-              setIsAdmin(manualUser.isAdmin);
+            const storedUser = JSON.parse(storedUserData);
+            if (storedUser.provider === 'manual' && storedUser.isAdmin) {
+              setUser(storedUser);
+              setIsAdmin(true);
             } else {
               cleanupAuthState();
             }
@@ -102,37 +100,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleUserSession, cleanupAuthState]);
   
   useEffect(() => {
-    // Solución para evitar el bucle de redirección
-    
-    // 1. No hacer nada mientras está cargando
-    if (loading) {
-      console.log("AuthProvider - Loading, no hacemos redirecciones");
-      return;
-    }
+    if (loading) return; // No hacer nada mientras se carga
 
-    // 2. Evitar completamente redirecciones si estamos en páginas de login
-    const loginPages = ['/admin/login', '/login', '/signup'];
-    if (loginPages.includes(pathname)) {
-      console.log(`AuthProvider - Estamos en página de login (${pathname}), no redirigimos`);
-      return;
-    }
+    const isAuthPage = pathname === '/login' || pathname === '/signup';
 
-    // 3. Lógica de redirección para usuario autenticado
+    // Si el usuario está autenticado
     if (user) {
-      // Usuario autenticado en página pública que no sea login (ya excluidas arriba)
-      const publicRoutes = ['/'];
-      if (publicRoutes.includes(pathname)) {
-        console.log(`AuthProvider - Usuario autenticado en ruta pública: ${pathname}, redirigiendo a ${user.isAdmin ? '/admin' : '/dashboard'}`);
+      // Si está en una página de autenticación o en la raíz, redirigir al panel correspondiente
+      if (isAuthPage || pathname === '/') {
         router.replace(user.isAdmin ? '/admin' : '/dashboard');
       }
-    } else {
-      // 4. Usuario no autenticado intentando acceder a rutas protegidas
-      // Las rutas de login ya están excluidas de redirección arriba
-      if (pathname.startsWith('/admin')) {
-        console.log(`AuthProvider - Usuario no autenticado intentando acceder a: ${pathname}, redirigiendo a /admin/login`);
-        router.replace('/admin/login');
-      } else if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
-        console.log(`AuthProvider - Usuario no autenticado intentando acceder a: ${pathname}, redirigiendo a /login`);
+    } 
+    // Si el usuario NO está autenticado
+    else {
+      // Y está intentando acceder a una ruta protegida
+      const isProtectedRoute = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/profile');
+      if (isProtectedRoute) {
+        // Redirigirlo a la página de login unificada
         router.replace('/login');
       }
     }
@@ -140,19 +124,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const handleMicrosoftSignIn = async () => {
     const provider = new OAuthProvider('microsoft.com');
-    provider.setCustomParameters({
-        tenant: 'common',
-        prompt: 'select_account',
-    });
+    provider.setCustomParameters({ tenant: 'common', prompt: 'select_account' });
     try {
       const result = await signInWithPopup(auth, provider);
       await handleUserSession(result.user);
-      router.push(isAdmin ? '/admin' : '/dashboard');
-      return result;
+      // La redirección se gestiona en el useEffect principal
     } catch(error: any) {
         let description = 'No se pudo iniciar sesión con Microsoft.';
         if (error.code === 'auth/account-exists-with-different-credential') {
-          description = 'Ya existe una cuenta con este correo electrónico pero con un método de inicio de sesión diferente.';
+          description = 'Ya existe una cuenta con este correo. Intenta iniciar sesión con el otro método.';
         } else if (error.code === 'auth/popup-closed-by-user') {
           description = 'El proceso de inicio de sesión fue cancelado.'
         }
@@ -160,65 +140,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  // Versión optimizada de handleAdminLogin para evitar bucles
   const handleAdminLogin = async (email: string, password: string) => {
-    console.log("AuthProvider - Intento de login admin:", email);
-    
-    // Verificar que sea un correo administrativo
-    if (!email.endsWith('@lasalle.edu.mx')) {
-      console.log("AuthProvider - Error: correo no pertenece al dominio");
-      throw new Error('El correo no pertenece al dominio de La Salle.');
+    if (email.toLowerCase() !== 'admin@lasalle.edu.mx' || password !== 'admin123') {
+      throw new Error('Credenciales de administrador inválidas.');
     }
 
-    try {
-      // Admin manual login para desarrollo
-      if (email === 'admin@lasalle.edu.mx' && password === 'admin123') {
-          console.log("AuthProvider - Credenciales admin válidas");
-          
-          // Creamos objeto de usuario admin
-          const adminUser: User = {
-              uid: 'admin-manual',
-              matricula: 'admin',
-              nombre: 'Administrador',
-              correo: email,
-              isAdmin: true,
-              provider: 'manual',
-              fecha_registro: new Date().toISOString(),
-              ultimo_acceso: new Date().toISOString(),
-          };
-          
-          // Importante: desactivamos temporalmente las redirecciones automáticas 
-          // para evitar conflictos durante el cambio de estado
-          setLoading(true);
-          
-          // Primero guardar en localStorage para persistencia
-          localStorage.setItem('userData', JSON.stringify(adminUser));
-          
-          // Actualizamos el estado en un orden específico para minimizar renderizados
-          setIsAdmin(true);
-          setUser(adminUser);
-          
-          // Re-habilitamos las redirecciones después de un pequeño delay
-          // esto es crítico para evitar redirecciones prematuras
-          setTimeout(() => {
-            setLoading(false);
-            console.log("AuthProvider - Admin autenticado correctamente, estado actualizado");
-          }, 50);
-          
-          return adminUser; // Retornamos el usuario para indicar éxito
-      }
-      
-      // Aquí se podría agregar la lógica para verificar en Firebase si el email está registrado como admin
-      console.log("AuthProvider - Credenciales de administrador inválidas");
-      throw new Error('Credenciales de administrador inválidas.');
-    } catch (error) {
-      console.error("AuthProvider - Error en login admin:", error);
-      throw error;
-    }
+    const adminUser: User = {
+        uid: 'admin-manual',
+        matricula: 'admin',
+        nombre: 'Administrador',
+        correo: email,
+        isAdmin: true,
+        provider: 'manual',
+        fecha_registro: new Date().toISOString(),
+        ultimo_acceso: new Date().toISOString(),
+    };
+    
+    localStorage.setItem('userData', JSON.stringify(adminUser));
+    setUser(adminUser);
+    setIsAdmin(true);
+    // La redirección la maneja el useEffect principal
   };
   
   const handleLoginWithMatricula = async (matriculaInput: string, password: string) => {
-    // Student password login
     const userRef = ref(db, `alumno/${matriculaInput}`);
     const snapshot = await get(userRef);
 
@@ -236,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     
     await handleUserSession(fbUser);
-    router.push('/dashboard');
+    // La redirección la maneja el useEffect principal
   };
 
   const handleRegister = async (userData: any) => {
@@ -251,10 +195,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { user: fbUser } = await createUserWithEmailAndPassword(auth, userData.correo, userData.password);
-
     const displayName = `${userData.nombre} ${userData.apellido_p} ${userData.apellido_m}`;
     await updateProfile(fbUser, { displayName });
-
 
     const newUser: Omit<User, 'isAdmin'> = {
         uid: fbUser.uid,
@@ -277,34 +219,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    const manualUserData = localStorage.getItem('userData');
-    if (manualUserData) {
-        const manualUser = JSON.parse(manualUserData);
-        if (manualUser.provider === 'manual') {
-            cleanupAuthState();
-            router.push('/');
-            return;
-        }
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error("Error during Firebase sign out:", error);
+    } finally {
+      cleanupAuthState();
+      router.push('/');
     }
-    await firebaseSignOut(auth);
-    cleanupAuthState();
-    router.push('/');
   };
 
   const updateUserProfile = async (profileData: { photoURL?: string | null }) => {
     if (!firebaseUser) return;
-    
     try {
       await updateProfile(firebaseUser, profileData);
-      
       if (user && user.matricula) {
         const userRef = ref(db, `alumno/${user.matricula}`);
         await update(userRef, { photoURL: profileData.photoURL });
-        
-        setUser({
-          ...user,
-          photoURL: profileData.photoURL || null
-        });
+        setUser({ ...user, photoURL: profileData.photoURL || null });
       }
     } catch (error) {
       console.error("Error updating profile:", error);

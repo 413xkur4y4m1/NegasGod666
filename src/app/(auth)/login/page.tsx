@@ -1,11 +1,11 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <--- Añadido useEffect
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,35 +32,49 @@ import { MicrosoftSignInButton } from '@/components/auth/MicrosoftSignInButton';
 import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
-const formSchema = z.object({
-  matricula: z.string().min(1, { message: 'La matrícula es requerida.' }),
-  password: z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
-});
+const createFormSchema = (role: 'student' | 'admin') =>
+  z.object({
+    identifier: z.string().min(1, {
+      message: role === 'student' ? 'La matrícula es requerida.' : 'El correo es requerido.',
+    }),
+    password: z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
+  });
 
 export default function LoginPage() {
-  const { handleLoginWithMatricula } = useAuth();
+  const { handleLoginWithMatricula, handleAdminLogin } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<'student' | 'admin'>('student');
 
+  const formSchema = createFormSchema(role);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      matricula: '',
+      identifier: '',
       password: '',
     },
   });
 
+  // CORREGIDO: Usar useEffect para reaccionar a cambios en `role`
+  useEffect(() => {
+    form.reset({ identifier: '', password: '' });
+  }, [role, form]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await handleLoginWithMatricula(values.matricula, values.password);
-      // AuthProvider handles redirection
+      if (role === 'admin') {
+        await handleAdminLogin(values.identifier, values.password);
+      } else {
+        await handleLoginWithMatricula(values.identifier, values.password);
+      }
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
-        description: error.message || 'Matrícula o contraseña incorrectos.',
+        description: error.message || 'Las credenciales son incorrectas.',
       });
+    } finally {
       setIsLoading(false);
     }
   }
@@ -73,20 +87,54 @@ export default function LoginPage() {
         </div>
         <CardTitle className="text-2xl font-headline">LaSalle Gestiona</CardTitle>
         <CardDescription>
-          Inicia sesión para gestionar tus préstamos.
+          {role === 'student'
+            ? 'Inicia sesión para gestionar tus préstamos.'
+            : 'Portal de acceso administrativo.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+            <Button
+              variant={role === 'student' ? 'default' : 'outline'}
+              onClick={() => setRole('student')}
+              className={cn(
+                'transition-all duration-200',
+                role === 'student' && 'ring-2 ring-primary ring-offset-2'
+              )}
+            >
+              Soy Estudiante
+            </Button>
+            <Button
+              variant={role === 'admin' ? 'default' : 'outline'}
+              onClick={() => setRole('admin')}
+              className={cn(
+                'transition-all duration-200',
+                role === 'admin' && 'ring-2 ring-primary ring-offset-2'
+              )}
+            >
+              Soy Administrador
+            </Button>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="matricula"
+              name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Matrícula</FormLabel>
+                  <FormLabel>
+                    {role === 'student' ? 'Matrícula' : 'Cuenta de Administrador'}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Tu matrícula" {...field} />
+                    <Input
+                      placeholder={
+                        role === 'student'
+                          ? 'Tu matrícula'
+                          : 'admin@lasalle.edu.mx'
+                      }
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -111,22 +159,22 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
-        <Separator className="my-6" />
-        <div className="space-y-4">
-          <MicrosoftSignInButton />
-        </div>
+        
+        {role === 'student' && (
+            <>
+                <Separator className="my-6" />
+                <div className="space-y-4">
+                    <MicrosoftSignInButton />
+                </div>
+            </>
+        )}
+
       </CardContent>
       <CardFooter className="flex flex-col gap-2 items-center text-sm">
         <p>
           ¿No tienes cuenta?{' '}
           <Link href="/signup" className="font-semibold text-accent hover:underline">
             Regístrate aquí
-          </Link>
-        </p>
-        <p className="text-muted-foreground">
-          ¿Eres administrador?{' '}
-          <Link href="/admin/login" className="font-semibold text-primary hover:underline">
-            Accede al portal administrativo
           </Link>
         </p>
       </CardFooter>

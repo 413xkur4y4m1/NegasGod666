@@ -2,7 +2,7 @@
 const nextConfig = {
   // Solucionar advertencia de Cross origin request
   // Permite explícitamente solicitudes de origen cruzado durante desarrollo
-  allowedDevOrigins: ['192.168.202.1'],
+  allowedDevOrigins: ['192.168.202.1', '9000-firebase-negasgod666git-1760249108965.cluster-c72u3gwiofapkvxrcwjq5zllcu.cloudworkstations.dev'],
   
   // Configuración para imágenes remotas
   images: {
