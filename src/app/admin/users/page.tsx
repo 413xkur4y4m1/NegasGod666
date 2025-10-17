@@ -1,3 +1,4 @@
+
 // src/app/admin/users/page.tsx
 'use client';
 
@@ -58,41 +59,43 @@ export default function UsersPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : users.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Estudiante</TableHead>
-                <TableHead>Matrícula</TableHead>
-                <TableHead>Carrera</TableHead>
-                <TableHead>Registrado con</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.uid}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.photoURL || undefined} alt={user.nombre} />
-                            <AvatarFallback>{getInitials(user.nombre)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <span className="font-medium">{`${user.nombre} ${user.apellido_p || ''}`}</span>
-                            <span className="text-sm text-muted-foreground">{user.correo}</span>
-                        </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.matricula}</TableCell>
-                  <TableCell>{user.carrera || 'No especificada'}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.provider === 'password' ? 'secondary' : 'outline'}>
-                      {user.provider === 'password' ? 'Correo' : 'Microsoft'}
-                    </Badge>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Estudiante</TableHead>
+                  <TableHead>Matrícula</TableHead>
+                  <TableHead>Carrera</TableHead>
+                  <TableHead>Registrado con</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.uid}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                              <AvatarImage src={user.photoURL || undefined} alt={user.nombre} />
+                              <AvatarFallback>{getInitials(user.nombre)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                              <span className="font-medium">{`${user.nombre} ${user.apellido_p || ''}`}</span>
+                              <span className="text-sm text-muted-foreground">{user.correo}</span>
+                          </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{user.matricula}</TableCell>
+                    <TableCell>{user.carrera || 'No especificada'}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.provider === 'password' ? 'secondary' : 'outline'}>
+                        {user.provider === 'password' ? 'Correo' : 'Microsoft'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p>No hay estudiantes registrados.</p>

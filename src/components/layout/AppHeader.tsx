@@ -1,4 +1,4 @@
-// src/components/layout/AppHeader.tsx
+
 'use client';
 
 import Link from 'next/link';
@@ -28,7 +28,6 @@ import { onValue, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { Loan } from '@/lib/types';
 import { differenceInDays, format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 export function AppHeader() {
   const { user, signOut, isAdmin } = useAuth();
@@ -98,38 +97,40 @@ export function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-       <Sheet>
-        <SheetTrigger asChild>
-          <Button size="icon" variant="outline" className="sm:hidden">
-            <PanelLeft className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs p-0">
-          <AppSidebar />
-        </SheetContent>
-      </Sheet>
-      <div className="flex items-center gap-4">
-        <Home className="h-4 w-4 text-muted-foreground" />
-        {breadcrumbs.map((crumb, index) => (
-          <div key={`${crumb.href}-${index}`} className="flex items-center gap-2 text-sm">
-            {index > 0 && <span className="text-muted-foreground">/</span>}
-            <Link
-              href={crumb.href}
-              className={`font-medium ${
-                index === breadcrumbs.length - 1
-                  ? 'text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {crumb.label}
-            </Link>
-          </div>
-        ))}
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+       <div className="flex items-center gap-4">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" variant="outline" className="lg:hidden">
+              <PanelLeft className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="sm:max-w-xs p-0">
+            <AppSidebar />
+          </SheetContent>
+        </Sheet>
+        <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+          <Home className="h-4 w-4" />
+          {breadcrumbs.map((crumb, index) => (
+            <div key={`${crumb.href}-${index}`} className="flex items-center gap-2">
+              {index > 0 && <span>/</span>}
+              <Link
+                href={crumb.href}
+                className={`font-medium ${
+                  index === breadcrumbs.length - 1
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {crumb.label}
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-4">
+      <div className="flex items-center gap-4">
         {!isAdmin && (
             <Popover>
             <PopoverTrigger asChild>

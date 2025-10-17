@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,16 +17,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarSeparator,
-} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/shared/Logo';
 
@@ -43,7 +35,6 @@ const adminNav = [
   { href: '/admin/loans', label: 'Préstamos', icon: GanttChartSquare },
 ];
 
-
 export function AppSidebar() {
   const { user, signOut, isAdmin } = useAuth();
   const pathname = usePathname();
@@ -59,55 +50,49 @@ export function AppSidebar() {
   };
 
   return (
-      <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-        <SidebarHeader className="border-b border-sidebar-border p-4">
+      <div className="flex h-full flex-col border-r bg-card text-card-foreground">
+        <header className="border-b p-4">
             <Link href={isAdmin ? '/admin' : '/dashboard'} className="flex items-center gap-3">
                 <Logo className="h-8 w-8" />
-                <span className="text-lg font-semibold text-sidebar-foreground font-headline">LaSalle Gestiona</span>
+                <span className="text-lg font-semibold font-headline">LaSalle Gestiona</span>
             </Link>
-        </SidebarHeader>
+        </header>
 
-        <SidebarContent className="flex-1 overflow-y-auto p-4">
-            <SidebarMenu>
+        <nav className="flex-1 overflow-y-auto p-4">
+            <ul className="space-y-2">
                 {navItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                        tooltip={{ children: item.label, side: 'right' }}
-                    >
-                      <Link href={item.href}>
+                <li key={item.href}>
+                    <Link href={item.href} legacyBehavior passHref>
+                      <a className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${ 
+                        pathname === item.href 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:bg-muted'
+                      }`}>
                         <item.icon className="h-5 w-5" />
-                        <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                        <span>{item.label}</span>
+                      </a>
+                    </Link>
+                </li>
                 ))}
-            </SidebarMenu>
-        </SidebarContent>
+            </ul>
+        </nav>
 
-        <SidebarSeparator />
-
-        <SidebarFooter className="p-4">
-            <div className="flex items-center gap-3">
+        <footer className="border-t p-4">
+            <div className="flex items-center gap-3 mb-4">
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.nombre} />
                     <AvatarFallback>{getInitials(user?.nombre || '')}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                <div className="flex flex-col">
                     <span className="text-sm font-medium truncate">{user?.nombre}</span>
-                    <span className="text-xs text-sidebar-foreground/70 truncate">{user?.correo}</span>
+                    <span className="text-xs text-muted-foreground truncate">{user?.correo}</span>
                 </div>
             </div>
-            <SidebarMenu className="mt-4">
-                <SidebarMenuItem>
-                    <SidebarMenuButton onClick={signOut} variant="outline" className="w-full justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                        <LogOut className="h-5 w-5" />
-                        <span className="group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarFooter>
+            <Button onClick={signOut} variant="outline" className="w-full justify-center">
+                <LogOut className="h-5 w-5 mr-2" />
+                <span>Cerrar Sesión</span>
+            </Button>
+        </footer>
     </div>
   );
 }

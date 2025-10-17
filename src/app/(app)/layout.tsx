@@ -1,9 +1,9 @@
+
 'use client';
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Loader2 } from 'lucide-react';
@@ -39,14 +39,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <div className="flex h-screen bg-background">
+      <div className="hidden lg:flex lg:flex-shrink-0">
         <AppSidebar />
-      </Sidebar>
-      <SidebarInset>
+      </div>
+      <div className="flex flex-1 flex-col overflow-hidden">
         <AppHeader />
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
   );
 }

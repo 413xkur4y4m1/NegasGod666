@@ -1,3 +1,4 @@
+
 // src/app/admin/materials/page.tsx
 'use client';
 
@@ -49,38 +50,40 @@ export default function MaterialsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : materials.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Material</TableHead>
-                <TableHead>Marca</TableHead>
-                <TableHead>Cantidad Disponible</TableHead>
-                <TableHead>Precio Unitario</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {materials.map((material) => (
-                <TableRow key={material.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                        <Image 
-                            src={material.imageUrl?.startsWith('/uploads/') ? material.imageUrl : `/uploads/default-${material.id}.jpg`}
-                            alt={material.nombre}
-                            width={40}
-                            height={40}
-                            className="rounded-md object-cover"
-                            data-ai-hint="kitchen utensil"
-                        />
-                        <span className="font-medium">{material.nombre}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{material.marca}</TableCell>
-                  <TableCell>{material.cantidad}</TableCell>
-                  <TableCell>${material.precio_unitario.toFixed(2)}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Material</TableHead>
+                  <TableHead>Marca</TableHead>
+                  <TableHead>Cantidad Disponible</TableHead>
+                  <TableHead>Precio Unitario</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {materials.map((material) => (
+                  <TableRow key={material.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                          <Image 
+                              src={material.imageUrl?.startsWith('/uploads/') ? material.imageUrl : `/uploads/default-${material.id}.jpg`}
+                              alt={material.nombre}
+                              width={40}
+                              height={40}
+                              className="rounded-md object-cover"
+                              data-ai-hint="kitchen utensil"
+                          />
+                          <span className="font-medium">{material.nombre}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{material.marca}</TableCell>
+                    <TableCell>{material.cantidad}</TableCell>
+                    <TableCell>${material.precio_unitario.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p>No hay materiales registrados en el inventario.</p>

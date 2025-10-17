@@ -1,3 +1,4 @@
+
 // src/app/admin/loans/page.tsx
 'use client';
 
@@ -70,33 +71,35 @@ export default function LoansPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : loans.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Estudiante</TableHead>
-                <TableHead>Material</TableHead>
-                <TableHead>Fecha de Préstamo</TableHead>
-                <TableHead>Fecha Límite</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loans.map((loan) => (
-                <TableRow key={loan.id_prestamo}>
-                  <TableCell>
-                    <div className="font-medium">{loan.nombre_alumno}</div>
-                    <div className="text-sm text-muted-foreground">{loan.matricula_alumno}</div>
-                  </TableCell>
-                  <TableCell>{loan.nombre_material}</TableCell>
-                  <TableCell>{formatDate(loan.fecha_prestamo)}</TableCell>
-                  <TableCell>{formatDate(loan.fecha_limite)}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Estudiante</TableHead>
+                  <TableHead>Material</TableHead>
+                  <TableHead>Fecha de Préstamo</TableHead>
+                  <TableHead>Fecha Límite</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {loans.map((loan) => (
+                  <TableRow key={loan.id_prestamo}>
+                    <TableCell>
+                      <div className="font-medium">{loan.nombre_alumno}</div>
+                      <div className="text-sm text-muted-foreground">{loan.matricula_alumno}</div>
+                    </TableCell>
+                    <TableCell>{loan.nombre_material}</TableCell>
+                    <TableCell>{formatDate(loan.fecha_prestamo)}</TableCell>
+                    <TableCell>{formatDate(loan.fecha_limite)}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p>No hay préstamos registrados en el sistema.</p>
