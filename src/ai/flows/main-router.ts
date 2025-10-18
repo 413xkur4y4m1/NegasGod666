@@ -4,10 +4,10 @@ import { z } from 'genkit';
 import { get, ref } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
-// Importamos las ACCIONES que ya hemos creado, que a su vez llaman a los flujos de IA.
-// Esto nos permite reutilizar la lógica de servidor existente.
+// Importamos las ACCIONES y FLUJOS que el router va a orquestar.
 import { createMaterialAction } from '@/app/actions/createMaterial';
-import { processAdminChatNotification, notifyAllStudentsWithDebts } from '@/app/actions/chatNotifications';
+import { processAdminChatNotification } from '@/app/actions/chatNotifications';
+import { studentDebtNotificationFlow } from '@/ai/flows/student-debt-notification'; // <<< CORRECCIÓN: Importación correcta
 import { manageMaterial } from '@/ai/flows/admin-chatbot-material-management';
 
 // 1. Definimos las posibles intenciones que el router puede identificar.
@@ -58,13 +58,14 @@ export const mainRouterFlow = ai.defineFlow(
         return await processAdminChatNotification({ input: userQuery });
 
       case 'notify_all_with_debts':
-        return await notifyAllStudentsWithDebts();
+        // <<< CORRECCIÓN: Llamamos al flujo correcto
+        const result = await studentDebtNotificationFlow({});
+        return { success: true, message: result.response };
 
       case 'create_material':
         return await createMaterialAction({ input: userQuery });
 
       case 'query':
-        // El flujo de consulta necesita el contexto de la base de datos
         const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
             get(ref(db, 'prestamos')),
             get(ref(db, 'alumno')),
@@ -75,8 +76,8 @@ export const mainRouterFlow = ai.defineFlow(
             users: JSON.stringify(usersSnapshot.val() || {}),
             materials: JSON.stringify(materialsSnapshot.val() || {}),
         };
-        const result = await manageMaterial({ userQuery, context });
-        return { success: true, message: result.response };
+        const queryResult = await manageMaterial({ userQuery, context });
+        return { success: true, message: queryResult.response };
 
       default:
         return { success: false, message: 'Intención reconocida, pero no hay una acción configurada.' };
