@@ -1,10 +1,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { sendNotificationEmail } from '@/lib/send-notification';
-import { ref, get } from 'firebase/database';
+import { ref, get, push, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
-
-// Importamos la versión compatible para entornos cliente/navegador
 import { sendClientNotification } from '@/lib/client-notifications';
 
 const NotificationSenderInputSchema = z.object({
@@ -22,31 +20,24 @@ const NotificationSenderOutputSchema = z.object({
     to: z.string().describe('Correo del destinatario'),
     subject: z.string().describe('Asunto del correo'),
     content: z.string().describe('Contenido HTML del correo'),
-    recipientName: z.string().describe('Nombre del destinatario')
+    recipientName: z.string().describe('Nombre del destinatario'),
+    userId: z.string().describe('El ID del usuario destinatario')
   })
 });
 
 export type NotificationSenderInput = z.infer<typeof NotificationSenderInputSchema>;
 export type NotificationSenderOutput = z.infer<typeof NotificationSenderOutputSchema>;
 
+// Función principal exportada que será llamada por la acción del chat
 export async function sendNotification(input: NotificationSenderInput): Promise<NotificationSenderOutput> {
-  const result = await notificationSenderFlow(input);
-  
   try {
-    // Determinamos si estamos en el cliente o servidor
-    const isClient = typeof window !== 'undefined';
-    
-    if (isClient) {
-      // En el cliente, usamos la versión compatible con el navegador
-      await sendClientNotification(result.notification);
-    } else {
-      // En el servidor, usamos la versión de servidor
-      await sendNotificationEmail(result.notification);
-    }
+    // Simplemente ejecutamos el flujo y devolvemos su resultado.
+    // Toda la lógica de envío ahora vive dentro del flujo.
+    const result = await notificationSenderFlow(input);
     return result;
   } catch (error) {
-    console.error('Error al enviar notificación:', error);
-    throw new Error(`No se pudo enviar la notificación: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    console.error('Error en el proceso de enviar notificación:', error);
+    throw new Error(`No se pudo completar el envío: ${error instanceof Error ? error.message : 'Error desconocido'}`);
   }
 }
 
@@ -56,17 +47,22 @@ const notificationPrompt = ai.definePrompt({
   output: {schema: NotificationSenderOutputSchema},
   prompt: `Asistente para enviar notificaciones personalizadas.
   
-  Analiza la instrucción del usuario y:
-  1. Identifica el destinatario y el tipo de notificación
-  2. Genera un correo apropiado y profesional
-  3. Maneja varios tipos de notificaciones como:
-     - Adeudos de materiales
-     - Recordatorios de devolución
-     - Avisos de préstamos vencidos
-     - Materiales dañados
-     - Notificaciones generales
+  Analiza la instrucción del usuario y los datos del sistema para:
+  1. Identificar el destinatario (usuario) y el propósito de la notificación.
+  2. Generar un correo profesional en formato HTML.
   
-  Si el contexto incluye datos de préstamos, usuarios o materiales, úsalos para personalizar el mensaje.`
+  DATOS DEL SISTEMA:
+  - Préstamos, usuarios y materiales disponibles en formato JSON.
+  
+  INSTRUCCIONES DE SALIDA:
+  Genera una respuesta JSON con la siguiente estructura:
+  - "response": Un mensaje de confirmación para el administrador (ej: "Notificación enviada a Juan Pérez.").
+  - "notification": Un objeto con:
+    - "to": El correo electrónico del destinatario.
+    - "subject": Un asunto claro y conciso.
+    - "content": El mensaje en formato HTML.
+    - "recipientName": El nombre completo del destinatario.
+    - "userId": El ID del usuario destinatario (ej: "L53T9fl1fCgLDODDNZJyj1AJYNn2"). Es MUY IMPORTANTE que extraigas este ID de los datos de usuarios.`
 });
 
 const notificationSenderFlow = ai.defineFlow(
@@ -76,27 +72,16 @@ const notificationSenderFlow = ai.defineFlow(
     outputSchema: NotificationSenderOutputSchema,
   },
   async (input: NotificationSenderInput) => {
-    const { userQuery, context } = input;
-    let contextData = {
-      loans: {},
-      users: {},
-      materials: {}
-    };
+    const { userQuery } = input;
+    let contextData = { loans: {}, users: {}, materials: {} };
 
     try {
-      // Obtener datos actualizados de Firebase
-      const dbRefs = {
-        loans: ref(db, 'prestamos'),
-        users: ref(db, 'usuarios'),
-        materials: ref(db, 'materiales')
-      };
-
+      // Obtener datos actualizados de Firebase para dar contexto a la IA
       const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
-        get(dbRefs.loans),
-        get(dbRefs.users),
-        get(dbRefs.materials)
+        get(ref(db, 'prestamos')),
+        get(ref(db, 'usuarios')),
+        get(ref(db, 'materiales'))
       ]);
-
       contextData = {
         loans: loansSnapshot.val() || {},
         users: usersSnapshot.val() || {},
@@ -104,40 +89,46 @@ const notificationSenderFlow = ai.defineFlow(
       };
     } catch (error) {
       console.error('Error al obtener datos de Firebase:', error);
+      // Continuamos incluso si falla, la IA podría funcionar solo con la query del usuario
     }
+    
+    // Ejecutar la IA para que genere el contenido de la notificación
+    const { output } = await notificationPrompt({
+        userQuery, 
+        context: {
+            users: JSON.stringify(contextData.users),
+            loans: JSON.stringify(contextData.loans),
+            materials: JSON.stringify(contextData.materials)
+        }
+    });
 
-    const prompt = `
-    Eres un asistente encargado de enviar notificaciones en el sistema de préstamos de LaSalle.
+    if (!output?.notification?.userId) {
+        console.error("La IA no generó una notificación válida con userId.", output);
+        throw new Error("La IA no pudo identificar al destinatario de la notificación.");
+    }
     
-    INSTRUCCIÓN DEL USUARIO:
-    ${userQuery}
+    const { notification } = output;
 
-    DATOS DEL SISTEMA:
-    ${JSON.stringify(contextData, null, 2)}
+    // --- ORQUESTACIÓN DEL ENVÍO ---
 
-    Analiza la instrucción y genera una notificación profesional y efectiva.
-    
-    Recuerda:
-    1. Usar un tono profesional y amable
-    2. Incluir detalles específicos de los datos disponibles
-    3. Personalizar el mensaje según el contexto
-    4. Usar el formato HTML para mejor presentación
-    5. Mantener el asunto conciso y claro
-    
-    Genera una respuesta con:
-    1. El correo del destinatario (buscándolo en los datos de usuarios)
-    2. Un asunto apropiado
-    3. Un mensaje en HTML bien formateado
-    4. El nombre completo del destinatario
-    `;
-    
-    const {output} = await notificationPrompt({userQuery, context});
-    return output!;
+    // 1. Enviar notificación por correo (Outlook)
+    await sendNotificationEmail(notification);
+
+    // 2. Enviar notificación a la interfaz del estudiante
+    await sendClientNotification(notification);
+
+    // 3. Guardar la notificación en la base de datos para el historial
+    const notificationsRef = ref(db, 'notificaciones');
+    await push(notificationsRef, {
+        userId: notification.userId,
+        type: 'manual_admin', // Tipo para identificar que fue enviada por un admin
+        message: notification.content,
+        subject: notification.subject,
+        timestamp: serverTimestamp(),
+        read: false,
+    });
+
+    // Devolver la respuesta generada por la IA
+    return output;
   }
 );
-
-// Ejemplo de uso:
-// sendNotification({
-//   userQuery: "Envía una notificación de adeudo al estudiante con matrícula ABC123 sobre el material audiovisual",
-//   context: { /* datos opcionales */ }
-// });

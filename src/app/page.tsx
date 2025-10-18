@@ -1,24 +1,24 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, BrainCircuit, GanttChartSquare, GraduationCap, Users } from 'lucide-react';
+import { Bot, BrainCircuit, GanttChartSquare, GraduationCap, Users, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4">
+      <header className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4 flex-wrap">
         <div className="flex items-center gap-4">
           <Logo className="h-10 w-10 text-primary" />
           <h1 className="text-2xl font-bold font-headline text-primary">
             LaSalle Gestiona
           </h1>
         </div>
-        <nav className="flex items-center gap-4">
-          <Button asChild variant="ghost">
+        <nav className="flex items-center gap-2 sm:gap-4 mt-4 sm:mt-0 flex-wrap">
+          <Button asChild variant="ghost" size="sm">
             <Link href="/admin/login">Admin Login</Link>
           </Button>
-          <Button asChild>
+          <Button asChild size="sm">
             <Link href="/login">Acceso Estudiantes</Link>
           </Button>
         </nav>
@@ -34,15 +34,12 @@ export default function Home() {
               <p className="mt-6 text-lg text-foreground/80 max-w-2xl mx-auto">
                 Una experiencia moderna para la comunidad de La Salle Neza. Pide prestado equipo de cocina y más, con la ayuda de tu asistente personal de IA.
               </p>
-              <div className="mt-8 flex justify-center gap-4">
+              <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
                 <Button asChild size="lg">
                   <Link href="/signup">Crear Cuenta</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
                   <Link href="/login">Acceso Estudiantes</Link>
-                </Button>
-                <Button asChild size="lg" variant="secondary">
-                  <Link href="/admin/login">Portal Administrativo</Link>
                 </Button>
               </div>
             </div>
@@ -63,17 +60,17 @@ export default function Home() {
               <FeatureCard
                 icon={<Bot className="h-8 w-8 text-accent" />}
                 title="Asistente Chatbot Personal"
-                description="Cada estudiante tiene su propio asistente de IA. Pide materiales, consulta tu historial y recibe notificaciones, todo a través de una conversación natural."
+                description="Pide materiales, consulta tu historial y recibe notificaciones, todo a través de una conversación natural con tu asistente de IA."
               />
               <FeatureCard
                 icon={<GanttChartSquare className="h-8 w-8 text-accent" />}
                 title="Gestión de Préstamos Simplificada"
-                description="Olvida los formularios. Simplemente dile a tu chatbot qué necesitas y cuándo lo devolverás. El sistema se encarga del resto."
+                description="Olvida los formularios. Simplemente dile a tu chatbot qué necesitas. El sistema se encarga del resto."
               />
               <FeatureCard
                 icon={<BrainCircuit className="h-8 w-8 text-accent" />}
                 title="Búsqueda Inteligente de Materiales"
-                description="¿No sabes el nombre exacto? Describe lo que buscas y nuestro sistema te mostrará opciones con imágenes generadas por IA para que identifiques el material correcto."
+                description="Describe lo que buscas y nuestro sistema te mostrará opciones con imágenes generadas por IA para que identifiques el material correcto."
               />
               <FeatureCard
                 icon={<GraduationCap className="h-8 w-8 text-accent" />}
@@ -81,14 +78,14 @@ export default function Home() {
                 description="Accede desde cualquier lugar. La plataforma está diseñada pensando en tus necesidades, con una interfaz intuitiva y amigable."
               />
               <FeatureCard
-                icon={<Users className="h-8 w-8 text-accent" />}
+                icon={<ShieldCheck className="h-8 w-8 text-accent" />}
                 title="Gestión Administrativa Potenciada"
-                description="Los administradores cuentan con un asistente virtual para gestionar el inventario, supervisar préstamos y generar informes estadísticos avanzados."
+                description="Los administradores cuentan con un asistente virtual para gestionar inventario, supervisar préstamos y generar informes estadísticos."
               />
                <FeatureCard
-                icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-accent"><path d="M12 11V15"/><path d="M12 7.01V7.01"/></svg>}
+                icon={<Users className="h-8 w-8 text-accent" />}
                 title="Disponibilidad Móvil"
-                description="Descarga la versión móvil de la aplicación para una experiencia optimizada en tu dispositivo, llevando la gestión de préstamos contigo a donde vayas."
+                description="La aplicación está optimizada para una experiencia fluida en tu dispositivo móvil, llevando la gestión de préstamos contigo."
               />
             </div>
           </div>
@@ -107,7 +104,7 @@ export default function Home() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
       <CardHeader className="items-center">
         <div className="bg-primary/10 p-3 rounded-full">
           {icon}

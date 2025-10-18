@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { AppSidebar } from '@/components/layout/AppSidebar';
@@ -40,11 +40,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-background">
+      {/* --- Menú Lateral Fijo para Escritorio --- */}
       <div className="hidden lg:flex lg:flex-shrink-0">
         <AppSidebar />
       </div>
+
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* --- Encabezado Responsivo para Móvil y Escritorio --- */}
+        {/* AppHeader ahora contiene la lógica del menú móvil */}
         <AppHeader />
+        
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
       </div>
     </div>
