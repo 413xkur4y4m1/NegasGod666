@@ -1,3 +1,4 @@
+
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { sendNotificationEmail } from '@/lib/send-notification';
@@ -6,64 +7,51 @@ import { db } from '@/lib/firebase';
 import { sendClientNotification } from '@/lib/client-notifications';
 
 const NotificationSenderInputSchema = z.object({
-  userQuery: z.string().describe('La instrucción de a quién y qué notificación enviar'),
+  userQuery: z.string().describe('La instrucción sobre a quién y qué notificar. Ej: "Envíale un recordatorio a Ana por el cuchillo que debe", "Notifica a todos con adeudos"'),
   context: z.object({
-    loans: z.string().optional().describe("JSON string de todos los préstamos"),
-    users: z.string().optional().describe("JSON string de todos los usuarios"),
-    materials: z.string().optional().describe("JSON string de todos los materiales")
+    loans: z.string().optional().describe("JSON string de todos los préstamos activos y vencidos"),
+    users: z.string().optional().describe("JSON string de todos los usuarios (alumnos y administradores)"),
+    materials: z.string().optional().describe("JSON string de todo el inventario de utensilios y equipo de cocina")
   }).optional()
 });
 
 const NotificationSenderOutputSchema = z.object({
-  response: z.string().describe('Confirmación del envío o mensaje de error'),
+  response: z.string().describe('Confirmación del envío o mensaje de error para el administrador.'),
   notification: z.object({
-    to: z.string().describe('Correo del destinatario'),
-    subject: z.string().describe('Asunto del correo'),
-    content: z.string().describe('Contenido HTML del correo'),
-    recipientName: z.string().describe('Nombre del destinatario'),
-    userId: z.string().describe('El ID del usuario destinatario')
+    to: z.string().describe('Correo electrónico del alumno destinatario.'),
+    subject: z.string().describe('Asunto del correo, ej: "Recordatorio de Préstamo Vencido".'),
+    content: z.string().describe('Contenido del correo en formato HTML, amigable y profesional.'),
+    recipientName: z.string().describe('Nombre completo del alumno destinatario.'),
+    userId: z.string().describe('El ID único del usuario destinatario. Es crucial extraerlo correctamente.')
   })
 });
-
-export type NotificationSenderInput = z.infer<typeof NotificationSenderInputSchema>;
-export type NotificationSenderOutput = z.infer<typeof NotificationSenderOutputSchema>;
-
-// Función principal exportada que será llamada por la acción del chat
-export async function sendNotification(input: NotificationSenderInput): Promise<NotificationSenderOutput> {
-  try {
-    // Simplemente ejecutamos el flujo y devolvemos su resultado.
-    // Toda la lógica de envío ahora vive dentro del flujo.
-    const result = await notificationSenderFlow(input);
-    return result;
-  } catch (error) {
-    console.error('Error en el proceso de enviar notificación:', error);
-    throw new Error(`No se pudo completar el envío: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-  }
-}
 
 const notificationPrompt = ai.definePrompt({
   name: 'notificationSenderPrompt',
   input: {schema: NotificationSenderInputSchema},
   output: {schema: NotificationSenderOutputSchema},
-  prompt: `Asistente para enviar notificaciones personalizadas.
-  
-  Analiza la instrucción del usuario y los datos del sistema para:
-  1. Identificar el destinatario (usuario) y el propósito de la notificación.
-  2. Generar un correo profesional en formato HTML.
-  
-  DATOS DEL SISTEMA:
-  - Préstamos, usuarios y materiales disponibles en formato JSON.
-  
+  prompt: `Eres un asistente inteligente en un laboratorio de gastronomía. Tu tarea es ayudar al administrador a enviar notificaciones a los alumnos sobre sus préstamos de utensilios y equipo de cocina.
+
+  Analiza la instrucción del administrador y los datos del sistema para:
+  1. Identificar al destinatario (alumno/s) y el propósito de la notificación (ej: recordatorio de devolución, aviso de préstamo vencido).
+  2. Generar un correo electrónico profesional y amigable en formato HTML.
+
+  DATOS DEL SISTEMA QUE TIENES DISPONIBLES:
+  - Préstamos: Contiene información sobre qué alumno tiene qué material y las fechas de devolución.
+  - Usuarios: Contiene los datos de los alumnos, incluyendo nombre, matrícula y correo.
+  - Materiales: El inventario completo de utensilios y equipo de cocina.
+
   INSTRUCCIONES DE SALIDA:
   Genera una respuesta JSON con la siguiente estructura:
-  - "response": Un mensaje de confirmación para el administrador (ej: "Notificación enviada a Juan Pérez.").
-  - "notification": Un objeto con:
-    - "to": El correo electrónico del destinatario.
-    - "subject": Un asunto claro y conciso.
-    - "content": El mensaje en formato HTML.
-    - "recipientName": El nombre completo del destinatario.
-    - "userId": El ID del usuario destinatario (ej: "L53T9fl1fCgLDODDNZJyj1AJYNn2"). Es MUY IMPORTANTE que extraigas este ID de los datos de usuarios.`
+  - "response": Un mensaje de confirmación para el administrador (ej: "Notificación de recordatorio enviada a Juan Pérez.").
+  - "notification": Un objeto con los detalles para el envío:
+    - "to": El correo electrónico del alumno.
+    - "subject": Un asunto claro y conciso (ej: "Recordatorio de Préstamo en el Laboratorio de Gastronomía").
+    - "content": El mensaje en formato HTML. Sé cordial y claro.
+    - "recipientName": El nombre completo del alumno.
+    - "userId": El ID único del alumno. Es MUY IMPORTANTE que extraigas este ID de los datos de usuarios del contexto.`
 });
+
 
 const notificationSenderFlow = ai.defineFlow(
   {
@@ -71,12 +59,11 @@ const notificationSenderFlow = ai.defineFlow(
     inputSchema: NotificationSenderInputSchema,
     outputSchema: NotificationSenderOutputSchema,
   },
-  async (input: NotificationSenderInput) => {
+  async (input: z.infer<typeof NotificationSenderInputSchema>) => {
     const { userQuery } = input;
     let contextData = { loans: {}, users: {}, materials: {} };
 
     try {
-      // Obtener datos actualizados de Firebase para dar contexto a la IA
       const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
         get(ref(db, 'prestamos')),
         get(ref(db, 'usuarios')),
@@ -89,10 +76,8 @@ const notificationSenderFlow = ai.defineFlow(
       };
     } catch (error) {
       console.error('Error al obtener datos de Firebase:', error);
-      // Continuamos incluso si falla, la IA podría funcionar solo con la query del usuario
     }
     
-    // Ejecutar la IA para que genere el contenido de la notificación
     const { output } = await notificationPrompt({
         userQuery, 
         context: {
@@ -104,31 +89,36 @@ const notificationSenderFlow = ai.defineFlow(
 
     if (!output?.notification?.userId) {
         console.error("La IA no generó una notificación válida con userId.", output);
-        throw new Error("La IA no pudo identificar al destinatario de la notificación.");
+        throw new Error("La IA no pudo identificar al destinatario. Por favor, sé más específico en tu solicitud.");
     }
     
     const { notification } = output;
 
     // --- ORQUESTACIÓN DEL ENVÍO ---
-
-    // 1. Enviar notificación por correo (Outlook)
     await sendNotificationEmail(notification);
-
-    // 2. Enviar notificación a la interfaz del estudiante
     await sendClientNotification(notification);
 
-    // 3. Guardar la notificación en la base de datos para el historial
     const notificationsRef = ref(db, 'notificaciones');
     await push(notificationsRef, {
         userId: notification.userId,
-        type: 'manual_admin', // Tipo para identificar que fue enviada por un admin
+        type: 'manual_admin',
         message: notification.content,
         subject: notification.subject,
         timestamp: serverTimestamp(),
         read: false,
     });
 
-    // Devolver la respuesta generada por la IA
     return output;
   }
 );
+
+// Esta función exportada es la que se llama desde las acciones del servidor
+export async function sendNotification(input: z.infer<typeof NotificationSenderInputSchema>): Promise<z.infer<typeof NotificationSenderOutputSchema>> {
+  try {
+    const result = await notificationSenderFlow(input);
+    return result;
+  } catch (error) {
+    console.error('Error en el proceso de enviar notificación:', error);
+    throw new Error(`No se pudo completar el envío: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+  }
+}

@@ -10,7 +10,6 @@ import { Send, Loader2 } from 'lucide-react';
 import { ChatMessage as ChatMessageType } from '@/lib/types';
 import { AdminChatMessage } from './AdminChatMessage';
 import { nanoid } from 'nanoid';
-// Importamos ÚNICAMENTE la acción del router principal
 import { mainRouterAction } from '@/app/actions/mainRouterAction';
 
 export function AdminChatWindow() {
@@ -20,13 +19,14 @@ export function AdminChatWindow() {
     {
       id: nanoid(),
       role: 'assistant',
-      content: `Hola, ${user?.nombre?.split(' ')[0] || 'Admin'}. Soy tu asistente virtual inteligente. ¿Qué necesitas?
+      // FIX: Mensaje de bienvenida contextualizado para el laboratorio de gastronomía
+      content: `Hola, ${user?.nombre?.split(' ')[0] || 'Admin'}. Soy tu Asistente de Laboratorio. Estoy para ayudarte a gestionar el inventario y los préstamos.
       
-Puedes pedir cosas como:
-- "Crea 5 nuevos taladros marca DeWalt"
-- "Muéstrame los alumnos con préstamos vencidos"
-- "Envía un recordatorio al alumno con matrícula 12345"
-- "Notifica a todos los que deben material"`,
+Puedes pedirme cosas como:
+- "Agrega 10 sartenes de teflón marca T-fal"
+- "Busca los préstamos del alumno con matrícula 244064"
+- "Envíale un recordatorio a Said Diaz"
+- "Notifica a todos los alumnos con adeudos"`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -56,19 +56,16 @@ Puedes pedir cosas como:
     let assistantResponseContent = '';
 
     try {
-      // El frontend ya no tiene lógica, solo llama a la acción del router.
       console.log(`[AdminChatWindow] Enviando solicitud al router principal: "${input}"`);
       const result = await mainRouterAction({ input });
 
-      // El formato de la respuesta (incluyendo listas detalladas) ya viene del backend.
       assistantResponseContent = result.message;
       
-      if (result.success) {
-        toast({ title: '¡Solicitud Procesada!', description: result.message });
-      } else {
-        toast({ variant: 'destructive', title: 'Error al Procesar', description: result.message });
+      if (!result.success) {
+         toast({ variant: 'destructive', title: 'Error al Procesar', description: result.message });
       }
-      
+      // No mostraremos un toast de éxito aquí para no ser redundantes con la respuesta del chat.
+
     } catch (error: any) {
       console.error('[AdminChatWindow] Error general:', error);
       assistantResponseContent = 'Lo siento, tuve un problema crítico al procesar tu solicitud. Por favor, revisa la consola o contacta al administrador.';

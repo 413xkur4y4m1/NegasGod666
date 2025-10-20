@@ -41,18 +41,8 @@ const nextConfig = {
       };
     }
     
-    // Excluir paquetes problemáticos del bundle del servidor
-    if (isServer) {
-      config.externals = [
-        ...(Array.isArray(config.externals) ? config.externals : []),
-        'nodemailer',
-        '@opentelemetry/context-async-hooks',
-        'google-auth-library',
-        'gcp-metadata',
-        'jaeger-client',
-        'thriftrw'
-      ];
-    }
+    // FIX: Se elimina la configuración `externals` que es problemática para Vercel.
+    // Las dependencias del servidor deben ser empaquetadas con las funciones.
     return config;
   },
 };

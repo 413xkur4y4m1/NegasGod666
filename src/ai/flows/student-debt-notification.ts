@@ -1,3 +1,4 @@
+
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { sendNotificationEmail } from '@/lib/send-notification';
@@ -17,7 +18,8 @@ const NotificationOutputSchema = z.object({
 const DebtPromptInputSchema = z.object({
   user: z.any().describe('Objeto del usuario desde Firebase'),
   loan: z.any().describe('Objeto del préstamo desde Firebase'),
-  diffDays: z.number().describe('Días hasta el vencimiento (positivo) o días de retraso (negativo/cero)'),
+  // FIX: Especificamos .int() para evitar incompatibilidades de esquema con la API de Google.
+  diffDays: z.number().int().describe('Días hasta el vencimiento (positivo) o días de retraso (negativo/cero)'),
 });
 
 // Definición del Prompt de Genkit

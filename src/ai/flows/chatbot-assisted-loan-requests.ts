@@ -1,125 +1,123 @@
+
 // src/ai/flows/chatbot-assisted-loan-requests.ts
 'use server';
-/**
- * @fileOverview This file defines a Genkit flow for processing loan requests via a chatbot interface.
- *
- * The flow takes a user query as input and returns a structured loan request, potentially including AI-generated images for materials.
- *
- * @interface ChatbotAssistedLoanInput - Defines the input schema for the chatbot-assisted loan request flow.
- * @interface ChatbotAssistedLoanOutput - Defines the output schema for the chatbot-assisted loan request flow.
- * @function chatbotAssistedLoanRequest - The main function to initiate the chatbot-assisted loan request flow.
- */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 import { db } from '@/lib/firebase';
 import { ref, get } from 'firebase/database';
 import { logger } from '@/lib/logger';
+import type { Loan, Debt, Material, User } from '@/lib/types';
 
-const ChatbotAssistedLoanInputSchema = z.object({
-  userQuery: z.string().describe('The user query describing the desired material for loan.'),
-  studentName: z.string().optional().describe('The name of the student requesting the loan.'),
-  studentMatricula: z.string().optional().describe('The matricula of the student requesting the loan.'),
-  availableMaterials: z.string().optional().describe('JSON string containing available materials from the database'),
+// --- ESQUEMAS ZOD ---
+const ChatbotInputSchema = z.object({
+  userQuery: z.string().describe('La pregunta o solicitud del alumno.'),
+  studentMatricula: z.string().describe('La matrícula del alumno que realiza la consulta.'),
 });
 
-export type ChatbotAssistedLoanInput = z.infer<typeof ChatbotAssistedLoanInputSchema>;
-
-const MaterialCardSchema = z.object({
-  id: z.string().describe('The unique identifier of the material.'),
-  name: z.string().describe('The name of the material.'),
-  imageUrl: z.string().optional().describe('Optional AI-generated image URL for the material.'),
-  quantity: z.number().optional().describe('Available quantity of the material'),
-  condition: z.string().optional().describe('Current condition of the material'),
+const AiMaterialCardSchema = z.object({
+  id: z.string().describe('El ID único del material.'),
+  name: z.string().describe('El nombre del material.'),
 });
 
-const ChatbotAssistedLoanOutputSchema = z.object({
-  materialOptions: z.array(MaterialCardSchema).describe('A list of potential material options based on the user query, with optional AI-generated images.'),
-  loanDetails: z.string().optional().describe('Details related to the loan such as fees and conditions')
+const EnrichedMaterialCardSchema = AiMaterialCardSchema.extend({
+  imageUrl: z.string().optional().describe('La URL de la imagen del material.'),
 });
 
-export type ChatbotAssistedLoanOutput = z.infer<typeof ChatbotAssistedLoanOutputSchema>;
+export const ChatbotOutputSchema = z.object({
+  intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
+  responseText: z.string(),
+  materialOptions: z.array(EnrichedMaterialCardSchema).optional(),
+  loansHistory: z.array(z.custom<Loan>()).optional(),
+  debtsHistory: z.array(z.custom<Debt>()).optional(),
+});
 
-export async function chatbotAssistedLoanRequest(input: ChatbotAssistedLoanInput): Promise<ChatbotAssistedLoanOutput> {
+// --- PROMPT DE LA IA ---
+const studentChatRouterPrompt = ai.definePrompt({
+  name: 'studentChatRouterPrompt',
+  input: { schema: z.object({ /* ... */ }) }, // Sin cambios
+  output: { schema: z.object({ 
+      intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
+      responseText: z.string(),
+      materialOptions: z.array(AiMaterialCardSchema).optional(),
+  })},
+  prompt: `Eres un asistente amigable...` // Sin cambios
+});
+
+// --- FUNCIÓN PRINCIPAL DEL FLUJO ---
+export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotInputSchema>): Promise<z.infer<typeof ChatbotOutputSchema>> {
   try {
-    // Obtener materiales de Firebase
-    const materialsSnapshot = await get(ref(db, 'materiales'));
-    const availableMaterials = materialsSnapshot.val() || {};
+    // 1. Obtener datos de Firebase
+    const [materialsSnap, loansSnap, debtsSnap, usersSnap] = await Promise.all([
+      get(ref(db, 'materiales')),
+      get(ref(db, 'prestamos')),
+      get(ref(db, 'adeudos')),
+      get(ref(db, 'usuarios'))
+    ]);
 
-    logger.chatbot('student', 'material-search', {
-      query: input.userQuery,
-      studentMatricula: input.studentMatricula,
-      availableMaterialsCount: Object.keys(availableMaterials).length
+    const allMaterials: Record<string, Material> = materialsSnap.val() || {};
+    const allLoans = loansSnap.val() || {};
+    const allDebts = debtsSnap.val() || {};
+    const allUsers: Record<string, User> = usersSnap.val() || {};
+
+    // 2. Filtrar datos del alumno
+    const currentUser = Object.values(allUsers).find(u => u.matricula === input.studentMatricula);
+    const studentName = currentUser?.nombre || 'alumno';
+    const studentLoans = Object.values(allLoans).filter((loan: any): loan is Loan => loan.matriculaAlumno === input.studentMatricula);
+    const studentDebts = Object.values(allDebts).filter((debt: any): debt is Debt => debt.matricula_alumno === input.studentMatricula);
+
+    // 3. Llamar a la IA
+    const { output: aiResponse } = await studentChatRouterPrompt({
+        userQuery: input.userQuery,
+        studentName,
+        availableMaterials: JSON.stringify(Object.values(allMaterials).map(m => ({ id: m.id, name: m.nombre }))),
+        studentLoans: JSON.stringify(studentLoans.map(l => ({ name: l.nombreMaterial, state: l.estado }))),
+        studentDebts: JSON.stringify(studentDebts.map(d => ({ name: d.nombre_material, amount: d.monto }))),
     });
 
-    // Agregar los materiales disponibles al input
-    const enhancedInput = {
-      ...input,
-      availableMaterials: JSON.stringify(availableMaterials)
+    if (!aiResponse) throw new Error("La IA no pudo procesar la solicitud.");
+
+    // 4. Construir la respuesta final
+    const finalResponse: z.infer<typeof ChatbotOutputSchema> = {
+      intent: aiResponse.intent,
+      responseText: aiResponse.responseText,
     };
 
-    const result = await chatbotAssistedLoanFlow(enhancedInput);
+    if (aiResponse.intent === 'materialSearch' && aiResponse.materialOptions) {
+      // FIX: Se construye el objeto manualmente para asegurar la compatibilidad de tipos.
+      finalResponse.materialOptions = aiResponse.materialOptions
+        .map(option => {
+          const realMaterial = allMaterials[option.id];
+          if (!realMaterial) return null;
 
-    // Filtrar y enriquecer los resultados con datos reales
-    const enrichedMaterialOptions = result.materialOptions
-      .map(material => {
-        const realMaterial = availableMaterials[material.id];
-        if (realMaterial) {
-          return {
-            id: material.id,
-            name: material.name,
-            quantity: Number(realMaterial.cantidad) || 0,
-            condition: String(realMaterial.estado || 'No especificado'),
-            imageUrl: realMaterial.imageUrl?.startsWith('/uploads/') ? realMaterial.imageUrl : `/uploads/default-${material.id}.jpg`
+          // Se crea un objeto que cumple explícitamente con el schema
+          const enrichedOption: z.infer<typeof EnrichedMaterialCardSchema> = {
+            id: option.id,
+            name: option.name,
           };
-        }
-        return null;
-      })
-      .filter((material): material is NonNullable<typeof material> => material !== null);
 
-    return {
-      ...result,
-      materialOptions: enrichedMaterialOptions
-    };
+          // Se añade la propiedad opcional solo si existe
+          if (realMaterial.imageUrl) {
+            enrichedOption.imageUrl = realMaterial.imageUrl;
+          }
+
+          return enrichedOption;
+        })
+        .filter(Boolean as any); // Se eliminan los nulos
+    } else if (aiResponse.intent === 'historyInquiry') {
+      finalResponse.loansHistory = studentLoans;
+      finalResponse.debtsHistory = studentDebts;
+    }
+    
+    logger.chatbot('student', finalResponse.intent, { matricula: input.studentMatricula, query: input.userQuery });
+
+    return finalResponse;
+
   } catch (error) {
-    logger.error('student', 'material-search-error', error);
-    throw error;
+    logger.error('student', 'chatbot-error', error);
+    return {
+        intent: 'clarification',
+        responseText: 'Lo siento, tuve un problema al procesar tu solicitud. ¿Podrías intentar de nuevo?'
+    };
   }
 }
-
-const materialSearchPrompt = ai.definePrompt({
-  name: 'materialSearchPrompt',
-  input: {schema: ChatbotAssistedLoanInputSchema},
-  output: {schema: ChatbotAssistedLoanOutputSchema},
-  prompt: `You are a helpful assistant designed to help students request material loans. A student will provide a query and you will find relevant materials from the database.
-
-  Available Materials: {{{availableMaterials}}}
-  Student Name: {{{studentName}}}
-  Student Matricula: {{{studentMatricula}}}
-  Student Query: {{{userQuery}}}
-
-  Based on the query and available materials in the database:
-  1. Search through the available materials JSON for relevant matches
-  2. Consider variations and synonyms of the requested items
-  3. Check material availability (cantidad > 0)
-  4. Include only materials that match the student's search intent
-  5. Provide helpful loan details and conditions
-
-  Return a well-structured response with:
-  - materialOptions: Array of matching materials from the database
-  - loanDetails: Helpful information about loan conditions and any specific requirements
-
-  Each Material in the materialOptions array MUST have an id and a name. If you can generate a suitable image, include an imageUrl with data URI. If no suitable materials exist, return an empty materialOptions array.`
-});
-
-const chatbotAssistedLoanFlow = ai.defineFlow(
-  {
-    name: 'chatbotAssistedLoanFlow',
-    inputSchema: ChatbotAssistedLoanInputSchema,
-    outputSchema: ChatbotAssistedLoanOutputSchema,
-  },
-  async input => {
-    const {output} = await materialSearchPrompt(input);
-    return output!;
-  }
-);

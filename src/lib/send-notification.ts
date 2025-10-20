@@ -1,6 +1,5 @@
 import { sendOutlookNotification } from './notifications';
 import { sendGraphMail } from './graph-mail';
-import { sendSimpleEmail } from './simple-email';
 
 /**
  * Envía una notificación utilizando el mejor método disponible
@@ -52,37 +51,21 @@ export async function sendNotificationEmail({
       console.log('[Servidor] Intentando con Microsoft Graph...');
       
       // Si falla, intenta con Microsoft Graph
-      try {
-        const result = await sendGraphMail({
-          to,
-          subject,
-          content,
-          cc,
-          bcc
-        });
-        
-        console.log('[Servidor] Correo enviado exitosamente con Microsoft Graph');
-        return {
-          success: true,
-          method: 'graph',
-          id: result.id,
-          recipientName
-        };
-      } catch (graphError) {
-        console.warn('[Servidor] Error con Microsoft Graph:', graphError);
-        console.log('[Servidor] Intentando método simple de respaldo...');
-        
-        // Si falla Graph también, usa el método simple
-        const result = await sendSimpleEmail(to, subject, content);
-        
-        console.log('[Servidor] Correo procesado con método simple');
-        return {
-          success: true,
-          method: 'simple',
-          id: result.id,
-          recipientName
-        };
-      }
+      const result = await sendGraphMail({
+        to,
+        subject,
+        content,
+        cc,
+        bcc
+      });
+      
+      console.log('[Servidor] Correo enviado exitosamente con Microsoft Graph');
+      return {
+        success: true,
+        method: 'graph',
+        id: result.id,
+        recipientName
+      };
     }
   } catch (error) {
     console.error('[Servidor] Error al enviar notificación por todos los métodos:', error);

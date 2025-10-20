@@ -4,31 +4,31 @@ import { z } from 'genkit';
 import { ref, push, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
-// 1. Definimos el esquema de entrada: el lenguaje natural del admin
+// 1. Esquema de entrada con ejemplo contextualizado para gastronomía
 const MaterialCreatorInputSchema = z.object({
-  userQuery: z.string().describe('La instrucción en lenguaje natural del administrador para agregar un nuevo material. Ej: "Agrega 15 martillos de la marca Stanley para carpintería"'),
+  userQuery: z.string().describe('La instrucción en lenguaje natural del administrador para agregar un nuevo utensilio o equipo. Ej: "Agrega 15 sartenes de teflón marca T-fal para la cocina 2"'),
 });
 
-// 2. Definimos el esquema de salida: los datos estructurados que la IA debe extraer
+// 2. Esquema de salida (sin cambios en la estructura)
 const MaterialCreatorOutputSchema = z.object({
-  quantity: z.number().int().positive().describe('La cantidad de unidades del material a agregar.'),
-  name: z.string().describe('El nombre descriptivo del material. Ej: "Martillo de carpintero"'),
-  brand: z.string().optional().describe('La marca del material, si se especifica.'),
-  category: z.string().optional().describe('La categoría a la que pertenece el material, si se especifica.'),
+  quantity: z.number().int().min(1).describe('La cantidad de unidades del ítem a agregar.'),
+  name: z.string().describe('El nombre descriptivo del ítem. Ej: "Sartén de teflón", "Cuchillo de chef"'),
+  brand: z.string().optional().describe('La marca del ítem, si se especifica.'),
+  category: z.string().optional().describe('La categoría a la que pertenece el ítem (ej: "utensilios", "cuchillería", "equipo eléctrico"), si se especifica.'),
 });
 
-// 3. Creamos el Prompt de Genkit para la extracción de información
+// 3. Prompt mejorado con contexto de gastronomía
 const materialExtractorPrompt = ai.definePrompt({
   name: 'materialExtractorPrompt',
   input: { schema: MaterialCreatorInputSchema },
   output: { schema: MaterialCreatorOutputSchema },
-  prompt: `Eres un asistente inteligente encargado de registrar nuevos materiales en el inventario de un sistema de préstamos.
+  prompt: `Eres un asistente de inventario para un laboratorio de gastronomía. Tu rol es analizar las solicitudes del administrador para añadir nuevo equipamiento, utensilios o insumos al sistema.
 
     Tu tarea es analizar la solicitud del usuario y extraer de manera precisa los siguientes datos del texto:
-    - La cantidad de material.
-    - El nombre o descripción del material.
+    - La cantidad de unidades del ítem.
+    - El nombre o descripción del ítem (ej: "Sartén de teflón", "Cuchillo de chef").
     - La marca (si la mencionan).
-    - La categoría (si la mencionan).
+    - La categoría (ej: "utensilios", "cuchillería", "equipo eléctrico"), si se especifica.
 
     Analiza la siguiente solicitud y extrae la información en el formato solicitado.
 
@@ -37,7 +37,7 @@ const materialExtractorPrompt = ai.definePrompt({
   `,
 });
 
-// 4. Definimos el flujo principal que orquesta el proceso
+// 4. Flujo principal (sin cambios en la lógica)
 export const createMaterialFlow = ai.defineFlow(
   {
     name: 'createMaterialFlow',
@@ -51,7 +51,6 @@ export const createMaterialFlow = ai.defineFlow(
   async (input) => {
     console.log(`[createMaterialFlow] Iniciando flujo con la consulta: "${input.userQuery}"`);
 
-    // Paso 1: Usar la IA para extraer los datos estructurados de la consulta
     const { output: extractedMaterial } = await materialExtractorPrompt(input);
 
     if (!extractedMaterial) {
@@ -66,7 +65,6 @@ export const createMaterialFlow = ai.defineFlow(
 
     const { name, quantity, brand, category } = extractedMaterial;
 
-    // Paso 2: Escribir los datos en Firebase Realtime Database
     try {
       const newMaterialRef = push(ref(db, 'materiales'));
       const newMaterialId = newMaterialRef.key;
@@ -75,9 +73,9 @@ export const createMaterialFlow = ai.defineFlow(
         id: newMaterialId,
         nombre: name,
         cantidad: quantity,
-        disponibles: quantity, // Por defecto, todos los nuevos están disponibles
-        marca: brand || 'Genérica', // Asignar un valor por defecto si no se extrae
-        categoria: category || 'General', // Asignar un valor por defecto si no se extrae
+        disponibles: quantity,
+        marca: brand || 'Genérica',
+        categoria: category || 'General',
         fecha_adquisicion: new Date().toISOString(),
         estado: 'Activo',
       });
@@ -93,7 +91,7 @@ export const createMaterialFlow = ai.defineFlow(
       console.error('[createMaterialFlow] Error al guardar el material en Firebase:', error);
       return {
         success: false,
-        message: `Hubo un error al intentar guardar el nuevo material en la base de datos: ${error instanceof Error ? error.message : 'Error desconocido'}`, 
+        message: `Hubo un error al intentar guardar el nuevo material en la base de datos: ${error instanceof Error ? error.message : 'Error desconocido'}`,
       };
     }
   }

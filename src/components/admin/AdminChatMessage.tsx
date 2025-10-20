@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import type { ChatMessage as ChatMessageType } from '@/lib/types';
-import { Bot, User as UserIcon } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { Logo } from '../shared/Logo';
 
 interface AdminChatMessageProps {
@@ -23,13 +23,16 @@ export function AdminChatMessage({ message }: AdminChatMessageProps) {
   
   const isAssistant = message.role === 'assistant';
 
+  // Convertimos los saltos de línea de texto a etiquetas <br> para el HTML
+  const formattedContent = message.content.replace(/\n/g, '<br />');
+
   return (
     <div className={`flex items-start gap-4 ${isAssistant ? '' : 'justify-end'}`}>
       {isAssistant && (
         <Avatar className="h-10 w-10 border-2 border-primary">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary/20">
-                <Logo className="h-6 w-6 text-primary"/>
-            </div>
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-primary/20">
+            <Logo className="h-6 w-6 text-primary" />
+          </div>
         </Avatar>
       )}
       <div
@@ -44,12 +47,20 @@ export function AdminChatMessage({ message }: AdminChatMessageProps) {
               : 'bg-primary text-primary-foreground rounded-br-none'
           }`}
         >
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          {/* 
+            FIX: Usamos dangerouslySetInnerHTML para renderizar el HTML que la IA genera.
+            - Añadimos la clase 'prose' para un estilo tipográfico agradable.
+            - El contenido se pasa a través de __html después de formatear los saltos de línea.
+          */}
+          <div 
+            className="text-sm prose prose-sm dark:prose-invert max-w-full" 
+            dangerouslySetInnerHTML={{ __html: formattedContent }}
+          />
         </div>
       </div>
       {!isAssistant && (
         <Avatar className="h-10 w-10">
-          <AvatarImage src={user?.photoURL || ''} alt={user?.nombre} />
+          <AvatarImage src={user?.photoURL || ''} alt={user?.nombre || ''} />
           <AvatarFallback>{getInitials(user?.nombre)}</AvatarFallback>
         </Avatar>
       )}

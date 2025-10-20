@@ -15,28 +15,27 @@ export interface User {
 }
 
 export interface Loan {
-  id_prestamo: string;
-  id_material: string;
-  nombre_material: string;
-  matricula_alumno: string;
-  nombre_alumno: string;
-  fecha_prestamo: string;
-  fecha_limite: string;
-  estado: 'activo' | 'devuelto' | 'perdido' | 'pendiente';
-  materia: string;
-  precio_unitario: number;
+  idPrestamo: string;
+  idMaterial: string;
+  nombreMaterial: string;
+  matriculaAlumno: string;
+  nombreAlumno: string;
+  fechaPrestamo: string;
+  fechaLimite: string;
+  estado: 'activo' | 'devuelto' | 'perdido' | 'pendiente' | 'vencido';
+  materia?: string; 
+  precioUnitario?: number;
 }
 
 export interface Material {
   id: string;
   nombre: string;
   cantidad: number;
-  precio_unitario: number;
-  precio_ajustado: number;
+  disponibles: number;
   marca: string;
-  anio_compra: number;
-  proveedor: string;
-  tipo: string;
+  categoria: string;
+  fecha_adquisicion: string;
+  estado: string;
   imageUrl?: string;
 }
 
@@ -53,12 +52,15 @@ export interface Debt {
     fecha_actualizacion: string;
 }
 
+// FIX: Se añaden los historiales de préstamos y adeudos como propiedades opcionales.
+// Se elimina la propiedad obsoleta 'loanDetails'.
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   materialOptions?: { id: string; name: string; imageUrl?: string }[];
-  loanDetails?: string;
   isConfirmation?: boolean;
   loanRequest?: Partial<Loan>;
+  loansHistory?: Loan[];
+  debtsHistory?: Debt[];
 }

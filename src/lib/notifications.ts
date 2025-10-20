@@ -16,10 +16,7 @@ function getTransporter() {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
-    tls: {
-      ciphers: 'SSLv3',
-      rejectUnauthorized: false
-    },
+    // FIX: Se elimina la configuración TLS insegura. Nodemailer negociará la conexión segura por defecto.
     debug: true, // Habilitar debugging
     logger: true // Habilitar logging
   });
