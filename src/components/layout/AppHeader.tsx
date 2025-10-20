@@ -45,7 +45,7 @@ export function AppHeader() {
       const upcomingLoans = Object.values(loans)
         .filter((loan: any) => {
             if (loan.estado !== 'activo') return false;
-            const diff = differenceInDays(parseISO(loan.fecha_limite), new Date());
+            const diff = differenceInDays(parseISO(loan.fechaLimite), new Date());
             return diff >= 0 && diff <= 3;
         }) as Loan[];
 
@@ -154,8 +154,8 @@ export function AppHeader() {
                 </div>
                 <div className="grid gap-2">
                     {notifications.map(loan => (
-                         <div key={loan.id_prestamo} className="text-sm p-2 bg-yellow-100/50 border border-yellow-200 rounded-md text-yellow-800">
-                           Tu préstamo de <strong>{loan.nombre_material}</strong> vence {formatTimeAgo(loan.fecha_limite)}.
+                         <div key={loan.idPrestamo} className="text-sm p-2 bg-yellow-100/50 border border-yellow-200 rounded-md text-yellow-800">
+                           Tu préstamo de <strong>{loan.nombreMaterial}</strong> vence {formatTimeAgo(loan.fechaLimite)}.
                         </div>
                     ))}
                 </div>

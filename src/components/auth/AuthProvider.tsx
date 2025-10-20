@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userIsAdmin = adminEmails.includes(fbUser.email || '');
 
     const matricula = fbUser.email!.split('@')[0];
-    const userRef = ref(db, `alumno/${matricula}`);
+    const userRef = ref(db, `alumnos/${matricula}`); // FIX: Changed to 'alumnos'
     const snapshot = await get(userRef);
 
     let appUser: User;
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (snapshot.exists()) {
       const dbUser = snapshot.val();
       const updates = {
-        ultimo_acceso: new Date().toISOString(),
+        ultimoAcceso: new Date().toISOString(),
         nombre: fbUser.displayName || dbUser.nombre,
         photoURL: fbUser.photoURL || dbUser.photoURL || null,
       };
@@ -58,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         correo: fbUser.email!,
         isAdmin: userIsAdmin,
         provider: (fbUser.providerData[0]?.providerId as 'microsoft.com') || 'password',
-        fecha_registro: new Date().toISOString(),
-        ultimo_acceso: new Date().toISOString(),
+        fechaRegistro: new Date().toISOString(),
+        ultimoAcceso: new Date().toISOString(),
         photoURL: fbUser.photoURL || null,
       };
       await set(userRef, appUser);
@@ -149,11 +149,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         uid: 'admin-manual',
         matricula: 'admin',
         nombre: 'Administrador',
+        apellido_p: '', // FIX
+        apellido_m: '', // FIX
         correo: email,
         isAdmin: true,
         provider: 'manual',
-        fecha_registro: new Date().toISOString(),
-        ultimo_acceso: new Date().toISOString(),
+        fechaRegistro: new Date().toISOString(),
+        ultimoAcceso: new Date().toISOString(),
     };
     
     localStorage.setItem('userData', JSON.stringify(adminUser));
@@ -163,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   const handleLoginWithMatricula = async (matriculaInput: string, password: string) => {
-    const userRef = ref(db, `alumno/${matriculaInput}`);
+    const userRef = ref(db, `alumnos/${matriculaInput}`); // FIX: Changed to 'alumnos'
     const snapshot = await get(userRef);
 
     if (!snapshot.exists()) {
@@ -189,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Este correo ya está registrado.');
     }
 
-    const matriculaSnapshot = await get(ref(db, `alumno/${userData.matricula}`));
+    const matriculaSnapshot = await get(ref(db, `alumnos/${userData.matricula}`)); // FIX: Changed to 'alumnos'
     if (matriculaSnapshot.exists()) {
         throw new Error('Esta matrícula ya está registrada.');
     }
@@ -198,22 +200,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const displayName = `${userData.nombre} ${userData.apellido_p} ${userData.apellido_m}`;
     await updateProfile(fbUser, { displayName });
 
-    const newUser: Omit<User, 'isAdmin'> = {
+    const newUser: User = {
         uid: fbUser.uid,
         matricula: userData.matricula,
         nombre: userData.nombre,
         apellido_p: userData.apellido_p,
         apellido_m: userData.apellido_m,
         carrera: userData.carrera,
-        correo: userData.correo,
+        correo: userData.correo, // FIX: Added missing 'correo' property
+        isAdmin: false, // FIX: Explicitly set isAdmin to false
         chatbotName: userData.chatbotName,
         photoURL: fbUser.photoURL || null,
         provider: 'password',
-        fecha_registro: new Date().toISOString(),
-        ultimo_acceso: new Date().toISOString(),
+        fechaRegistro: new Date().toISOString(),
+        ultimoAcceso: new Date().toISOString(),
     };
     
-    await set(ref(db, `alumno/${userData.matricula}`), newUser);
+    await set(ref(db, `alumnos/${userData.matricula}`), newUser); // FIX: Changed to 'alumnos'
     router.push('/login');
     return fbUser;
   };
@@ -234,7 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await updateProfile(firebaseUser, profileData);
       if (user && user.matricula) {
-        const userRef = ref(db, `alumno/${user.matricula}`);
+        const userRef = ref(db, `alumnos/${user.matricula}`); // FIX: Changed to 'alumnos'
         await update(userRef, { photoURL: profileData.photoURL });
         setUser({ ...user, photoURL: profileData.photoURL || null });
       }

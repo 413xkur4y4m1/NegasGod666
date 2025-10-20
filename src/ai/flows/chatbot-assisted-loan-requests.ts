@@ -64,7 +64,7 @@ export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotIn
     const currentUser = Object.values(allUsers).find(u => u.matricula === input.studentMatricula);
     const studentName = currentUser?.nombre || 'alumno';
     const studentLoans = Object.values(allLoans).filter((loan: any): loan is Loan => loan.matriculaAlumno === input.studentMatricula);
-    const studentDebts = Object.values(allDebts).filter((debt: any): debt is Debt => debt.matricula_alumno === input.studentMatricula);
+    const studentDebts = Object.values(allDebts).filter((debt: any): debt is Debt => debt.matriculaAlumno === input.studentMatricula);
 
     // 3. Llamar a la IA
     const { output: aiResponse } = await studentChatRouterPrompt({
@@ -72,7 +72,7 @@ export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotIn
         studentName,
         availableMaterials: JSON.stringify(Object.values(allMaterials).map(m => ({ id: m.id, name: m.nombre }))),
         studentLoans: JSON.stringify(studentLoans.map(l => ({ name: l.nombreMaterial, state: l.estado }))),
-        studentDebts: JSON.stringify(studentDebts.map(d => ({ name: d.nombre_material, amount: d.monto }))),
+        studentDebts: JSON.stringify(studentDebts.map(d => ({ name: d.nombreMaterial, amount: d.monto }))),
     });
 
     if (!aiResponse) throw new Error("La IA no pudo procesar la solicitud.");

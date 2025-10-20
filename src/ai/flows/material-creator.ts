@@ -76,7 +76,7 @@ export const createMaterialFlow = ai.defineFlow(
         disponibles: quantity,
         marca: brand || 'Genérica',
         categoria: category || 'General',
-        fecha_adquisicion: new Date().toISOString(),
+        fechaAdquisicion: new Date().toISOString(),
         estado: 'Activo',
       });
 

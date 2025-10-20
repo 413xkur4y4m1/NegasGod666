@@ -10,8 +10,8 @@ export interface User {
   chatbotName?: string;
   isAdmin: boolean;
   provider: 'microsoft.com' | 'password' | 'manual';
-  fecha_registro: string;
-  ultimo_acceso: string;
+  fechaRegistro: string;
+  ultimoAcceso: string;
 }
 
 export interface Loan {
@@ -34,23 +34,23 @@ export interface Material {
   disponibles: number;
   marca: string;
   categoria: string;
-  fecha_adquisicion: string;
+  fechaAdquisicion: string;
   estado: string;
-  precioUnitario: number; // FIX: Añadida la propiedad que faltaba
+  precioUnitario: number;
   imageUrl?: string;
 }
 
 export interface Debt {
     id: string;
-    matricula_alumno: string;
-    nombre_alumno: string;
-    id_material: string;
-    nombre_material: string;
+    matriculaAlumno: string;
+    nombreAlumno: string;
+    idMaterial: string;
+    nombreMaterial: string;
     monto: number;
     descripcion: string;
     estado: 'pendiente' | 'pagado';
-    fecha_adeudo: string;
-    fecha_actualizacion: string;
+    fechaAdeudo: string;
+    fechaActualizacion: string;
 }
 
 // FIX: Se añaden los historiales de préstamos y adeudos como propiedades opcionales.

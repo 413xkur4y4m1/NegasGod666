@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 interface ChatMessageProps {
   message: ChatMessageType;
   onSelectMaterial: (material: { id: string; name: string }) => void;
-  onLoanConfirmation: (loanRequest: Partial<Loan>, materia: string, fecha_limite: string) => void;
+  onLoanConfirmation: (loanRequest: Partial<Loan>, materia: string, fechaLimite: string) => void;
 }
 
 // --- Componentes de Tarjetas de Historial (NUEVO) ---
@@ -60,8 +60,8 @@ function DebtHistoryCard({ debt }: { debt: Debt }) {
                 <HandCoins className={`h-4 w-4 ${isPaid ? 'text-green-600' : 'text-red-600'}`} />
             </div>
             <div className="flex-grow">
-                 <p className="font-semibold">{debt.nombre_material}</p>
-                 <p className="text-xs text-muted-foreground">Fecha: {debt.fecha_adeudo}</p>
+                 <p className="font-semibold">{debt.nombreMaterial}</p>
+                 <p className="text-xs text-muted-foreground">Fecha: {debt.fechaAdeudo}</p>
             </div>
             <div className="text-right flex-shrink-0">
                 <p className={`font-bold text-lg ${isPaid ? 'text-green-600' : 'text-red-600'}`}>
@@ -129,8 +129,8 @@ export function ChatMessage({ message, onSelectMaterial, onLoanConfirmation }: C
                       <Input id="materia" value={materia} onChange={(e) => setMateria(e.target.value)} placeholder="Ej. Cocina 1" required/>
                   </div>
                   <div>
-                      <Label htmlFor="fecha_limite">Fecha de Devolución</Label>
-                      <Input id="fecha_limite" type="date" value={fechaLimite} onChange={(e) => setFechaLimite(e.target.value)} required/>
+                      <Label htmlFor="fechaLimite">Fecha de Devolución</Label>
+                      <Input id="fechaLimite" type="date" value={fechaLimite} onChange={(e) => setFechaLimite(e.target.value)} required/>
                   </div>
                     <Button type="submit" className="w-full">Confirmar Solicitud</Button>
               </form>

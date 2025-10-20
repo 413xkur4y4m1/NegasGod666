@@ -98,13 +98,13 @@ export function ChatWindow() {
     setMessages(prev => [...prev, confirmationMessage]);
   };
   
-  const handleLoanConfirmation = async (loanRequest: Partial<Loan>, materia: string, fecha_limite: string) => {
+  const handleLoanConfirmation = async (loanRequest: Partial<Loan>, materia: string, fechaLimite: string) => {
     if (!user) return;
 
     const finalLoanRequest: Partial<Loan> = {
       ...loanRequest,
       materia,
-      fechaLimite: fecha_limite,
+      fechaLimite: fechaLimite,
       fechaPrestamo: new Date().toISOString().split('T')[0],
     };
 
