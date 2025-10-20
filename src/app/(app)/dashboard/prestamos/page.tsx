@@ -25,7 +25,7 @@ export default function PrestamosPage() {
       const data = snapshot.val();
       if (data) {
         const loanList = Object.keys(data).map(key => ({
-          id_prestamo: key,
+          idPrestamo: key,
           ...data[key]
         })) as Loan[];
         setLoans(loanList.sort((a, b) => {
@@ -86,10 +86,10 @@ export default function PrestamosPage() {
             </TableHeader>
             <TableBody>
               {loans.map((loan) => (
-                <TableRow key={loan.id_prestamo}>
-                  <TableCell className="font-medium">{loan.nombre_material}</TableCell>
+                <TableRow key={loan.idPrestamo}>
+                  <TableCell className="font-medium">{loan.nombreMaterial}</TableCell>
                   <TableCell>{formatDate(loan.fechaPrestamo)}</TableCell>
-                  <TableCell>{formatDate(loan.fecha_limite)}</TableCell>
+                  <TableCell>{formatDate(loan.fechaLimite)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
                   </TableCell>
