@@ -78,7 +78,7 @@ export default function MaterialsPage() {
                     </TableCell>
                     <TableCell>{material.marca}</TableCell>
                     <TableCell>{material.cantidad}</TableCell>
-                    <TableCell>${material.precio_unitario.toFixed(2)}</TableCell>
+                    <TableCell>${material.precioUnitario.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

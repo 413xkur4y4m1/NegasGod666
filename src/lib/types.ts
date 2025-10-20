@@ -36,6 +36,7 @@ export interface Material {
   categoria: string;
   fecha_adquisicion: string;
   estado: string;
+  precioUnitario: number; // FIX: Añadida la propiedad que faltaba
   imageUrl?: string;
 }
 
