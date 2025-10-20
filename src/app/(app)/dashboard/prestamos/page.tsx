@@ -29,8 +29,8 @@ export default function PrestamosPage() {
           ...data[key]
         })) as Loan[];
         setLoans(loanList.sort((a, b) => {
-          const dateA = a.fecha_prestamo ? new Date(a.fecha_prestamo).getTime() : 0;
-          const dateB = b.fecha_prestamo ? new Date(b.fecha_prestamo).getTime() : 0;
+          const dateA = a.fechaPrestamo ? new Date(a.fechaPrestamo).getTime() : 0;
+          const dateB = b.fechaPrestamo ? new Date(b.fechaPrestamo).getTime() : 0;
           return dateB - dateA;
         }));
       } else {
@@ -88,7 +88,7 @@ export default function PrestamosPage() {
               {loans.map((loan) => (
                 <TableRow key={loan.id_prestamo}>
                   <TableCell className="font-medium">{loan.nombre_material}</TableCell>
-                  <TableCell>{formatDate(loan.fecha_prestamo)}</TableCell>
+                  <TableCell>{formatDate(loan.fechaPrestamo)}</TableCell>
                   <TableCell>{formatDate(loan.fecha_limite)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
