@@ -22,13 +22,13 @@ export default function LoansPage() {
       const data = snapshot.val();
       if (data) {
         const loanList = Object.keys(data).map(key => ({
-            id_prestamo: key,
+            idPrestamo: key,
             ...data[key]
         })) as Loan[];
 
         setLoans(loanList.sort((a, b) => {
-          const dateA = a.fecha_prestamo ? new Date(a.fecha_prestamo).getTime() : 0;
-          const dateB = b.fecha_prestamo ? new Date(b.fecha_prestamo).getTime() : 0;
+          const dateA = a.fechaPrestamo ? new Date(a.fechaPrestamo).getTime() : 0;
+          const dateB = b.fechaPrestamo ? new Date(b.fechaPrestamo).getTime() : 0;
           return dateB - dateA;
         }));
       } else {
@@ -84,14 +84,14 @@ export default function LoansPage() {
               </TableHeader>
               <TableBody>
                 {loans.map((loan) => (
-                  <TableRow key={loan.id_prestamo}>
+                  <TableRow key={loan.idPrestamo}>
                     <TableCell>
-                      <div className="font-medium">{loan.nombre_alumno}</div>
-                      <div className="text-sm text-muted-foreground">{loan.matricula_alumno}</div>
+                      <div className="font-medium">{loan.nombreAlumno}</div>
+                      <div className="text-sm text-muted-foreground">{loan.matriculaAlumno}</div>
                     </TableCell>
-                    <TableCell>{loan.nombre_material}</TableCell>
-                    <TableCell>{formatDate(loan.fecha_prestamo)}</TableCell>
-                    <TableCell>{formatDate(loan.fecha_limite)}</TableCell>
+                    <TableCell>{loan.nombreMaterial}</TableCell>
+                    <TableCell>{formatDate(loan.fechaPrestamo)}</TableCell>
+                    <TableCell>{formatDate(loan.fechaLimite)}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
                     </TableCell>
