@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { Loan } from '@/lib/types';
+import { Loan, LoanSchema } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import { format, isValid } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 
 export default function PrestamosPage() {
   const { user } = useAuth();
@@ -24,13 +24,18 @@ export default function PrestamosPage() {
     const unsubscribe = onValue(loansRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const loanList = Object.keys(data).map(key => ({
-          idPrestamo: key,
-          ...data[key]
-        })) as Loan[];
+        const loanList = Object.keys(data).map(key => {
+          const parsed = LoanSchema.safeParse({ id_prestamo: key, ...data[key] });
+          if (parsed.success) {
+            return parsed.data;
+          }
+          console.warn(`Invalid loan data for key ${key}:`, parsed.error);
+          return null;
+        }).filter((loan): loan is Loan => loan !== null);
+
         setLoans(loanList.sort((a, b) => {
-          const dateA = a.fechaPrestamo ? new Date(a.fechaPrestamo).getTime() : 0;
-          const dateB = b.fechaPrestamo ? new Date(b.fechaPrestamo).getTime() : 0;
+          const dateA = a.fechaPrestamo ? parseISO(a.fechaPrestamo).getTime() : 0;
+          const dateB = b.fechaPrestamo ? parseISO(b.fechaPrestamo).getTime() : 0;
           return dateB - dateA;
         }));
       } else {
@@ -42,7 +47,7 @@ export default function PrestamosPage() {
     return () => unsubscribe();
   }, [user]);
 
-  const getStatusVariant = (status: Loan['estado']) => {
+  const getStatusVariant = (status: Loan['status']) => {
     switch (status) {
       case 'activo':
         return 'default';
@@ -59,7 +64,7 @@ export default function PrestamosPage() {
   
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
+    const date = parseISO(dateString);
     return isValid(date) ? format(date, 'dd/MM/yyyy') : 'Fecha inválida';
   }
 
@@ -91,7 +96,7 @@ export default function PrestamosPage() {
                   <TableCell>{formatDate(loan.fechaPrestamo)}</TableCell>
                   <TableCell>{formatDate(loan.fechaLimite)}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusVariant(loan.estado)}>{loan.estado}</Badge>
+                    <Badge variant={getStatusVariant(loan.status)}>{loan.status}</Badge>
                   </TableCell>
                 </TableRow>
               ))}

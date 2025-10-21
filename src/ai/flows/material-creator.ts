@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 
 // 1. Esquema de entrada con ejemplo contextualizado para gastronomía
 const MaterialCreatorInputSchema = z.object({
-  userQuery: z.string().describe('La instrucción en lenguaje natural del administrador para agregar un nuevo utensilio o equipo. Ej: "Agrega 15 sartenes de teflón marca T-fal para la cocina 2"'),
+  userQuery: z.string().describe('La instrucción en lenguaje natural del administrador para agregar un nuevo utensilio o equipo. Ej: "Agrega 15 sartenes de teflón marca T-fal a $250 cada uno para la cocina 2"'),
 });
 
 // 2. Esquema de salida (sin cambios en la estructura)
@@ -15,6 +15,7 @@ const MaterialCreatorOutputSchema = z.object({
   name: z.string().describe('El nombre descriptivo del ítem. Ej: "Sartén de teflón", "Cuchillo de chef"'),
   brand: z.string().optional().describe('La marca del ítem, si se especifica.'),
   category: z.string().optional().describe('La categoría a la que pertenece el ítem (ej: "utensilios", "cuchillería", "equipo eléctrico"), si se especifica.'),
+  precioUnitario: z.number().optional().describe('El precio de cada unidad del ítem.'),
 });
 
 // 3. Prompt mejorado con contexto de gastronomía
@@ -29,6 +30,7 @@ const materialExtractorPrompt = ai.definePrompt({
     - El nombre o descripción del ítem (ej: "Sartén de teflón", "Cuchillo de chef").
     - La marca (si la mencionan).
     - La categoría (ej: "utensilios", "cuchillería", "equipo eléctrico"), si se especifica.
+    - El precio unitario del ítem (si lo mencionan).
 
     Analiza la siguiente solicitud y extrae la información en el formato solicitado.
 
@@ -63,7 +65,7 @@ export const createMaterialFlow = ai.defineFlow(
 
     console.log('[createMaterialFlow] Datos extraídos por la IA:', extractedMaterial);
 
-    const { name, quantity, brand, category } = extractedMaterial;
+    const { name, quantity, brand, category, precioUnitario } = extractedMaterial;
 
     try {
       const newMaterialRef = push(ref(db, 'materiales'));
@@ -78,6 +80,7 @@ export const createMaterialFlow = ai.defineFlow(
         categoria: category || 'General',
         fechaAdquisicion: new Date().toISOString(),
         estado: 'Activo',
+        precioUnitario: precioUnitario || 0,
       });
 
       console.log(`[createMaterialFlow] Material creado con éxito con ID: ${newMaterialId}`);

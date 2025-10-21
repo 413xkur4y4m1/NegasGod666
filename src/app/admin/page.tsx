@@ -6,8 +6,8 @@ import { ChefHat, GanttChartSquare, TriangleAlert, CookingPot, Sparkles } from "
 import { AdminChatWindow } from "@/components/admin/AdminChatWindow";
 import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";
-// FIX: Se importa el tipo correcto 'Loan' en lugar de 'Prestamo'.
-import type { Material, Loan, User } from "@/lib/types";
+// CORRECTED: Import Zod schemas for parsing
+import { Material, Loan, User, MaterialSchema, LoanSchema, UserSchema } from "@/lib/types";
 
 // Tipos para las estadísticas
 interface DashboardStats {
@@ -31,29 +31,37 @@ export default function AdminDashboardPage() {
     const usersRef = ref(db, 'usuarios');
 
     const unsubscribeMaterials = onValue(materialsRef, (snapshot) => {
-      const materialsData = snapshot.val() as Record<string, Material> | null;
+      const materialsData = snapshot.val();
       if (materialsData) {
-        const materialsArray = Object.values(materialsData);
+        // CORRECTED: Parse and validate data from Firebase
+        const materialsArray = Object.values(materialsData)
+          .map(m => MaterialSchema.safeParse(m))
+          .filter(p => p.success)
+          .map(p => (p as any).data);
+          
         const totalMaterials = materialsArray.length;
-        // FIX: Se verifica la propiedad 'disponibles' que ahora sí existe en el tipo Material.
-        const availableMaterials = materialsArray.filter(m => (m.disponibles || 0) > 0).length;
+        const availableMaterials = materialsArray.filter(m => (m.cantidad || 0) > 0).length;
         setStats(prev => ({ ...prev!, totalMaterials, availableMaterials }));
       }
     }, (err) => setError("Error al cargar materiales."));
 
     const unsubscribeLoans = onValue(loansRef, (snapshot) => {
-        // FIX: Se utiliza el tipo correcto 'Loan' para los datos de préstamos.
-        const loansData = snapshot.val() as Record<string, Loan> | null;
+        const loansData = snapshot.val();
         if (loansData) {
-            const loansArray = Object.values(loansData);
-            const activeLoans = loansArray.filter(p => p.estado === 'activo').length;
-            // FIX: Se usa el estado 'vencido' que fue añadido al tipo Loan.
-            const overdueLoans = loansArray.filter(p => p.estado === 'vencido').length;
+          // CORRECTED: Parse and validate data from Firebase
+          const loansArray = Object.values(loansData)
+            .map(l => LoanSchema.safeParse(l))
+            .filter(p => p.success)
+            .map(p => (p as any).data);
+
+            const activeLoans = loansArray.filter(p => p.status === 'activo').length;
+            const overdueLoans = loansArray.filter(p => p.status === 'vencido').length;
 
             const materialCounts: { [key: string]: number } = {};
             loansArray.forEach(loan => {
-                // FIX: Se accede a la propiedad con la nomenclatura correcta 'nombreMaterial'.
-                materialCounts[loan.nombreMaterial] = (materialCounts[loan.nombreMaterial] || 0) + 1;
+                if (loan.materialName) {
+                  materialCounts[loan.materialName] = (materialCounts[loan.materialName] || 0) + 1;
+                }
             });
             const mostLoanedMaterial = Object.keys(materialCounts).length > 0 
                 ? Object.entries(materialCounts).sort((a, b) => b[1] - a[1])[0][0]
@@ -64,9 +72,15 @@ export default function AdminDashboardPage() {
     }, (err) => setError("Error al cargar préstamos."));
 
     const unsubscribeUsers = onValue(usersRef, (snapshot) => {
-      const usersData = snapshot.val() as Record<string, User> | null;
+      const usersData = snapshot.val();
       if (usersData) {
-        const totalUsers = Object.keys(usersData).length;
+        // CORRECTED: Parse and validate data from Firebase
+        const usersArray = Object.values(usersData)
+          .map(u => UserSchema.safeParse(u))
+          .filter(p => p.success)
+          .map(p => (p as any).data);
+
+        const totalUsers = usersArray.length;
         setStats(prev => ({ ...prev!, totalUsers }));
       }
     }, (err) => setError("Error al cargar usuarios."));
@@ -100,7 +114,7 @@ export default function AdminDashboardPage() {
             <StatCard 
                 icon={<ChefHat className="h-6 w-6 text-primary" />} 
                 title="Materiales Totales" 
-                value={loading ? '...' : `${stats?.availableMaterials ?? '--'} / ${stats?.totalMaterials ?? '--'}`} 
+                value={loading ? '...' : `${stats?.availableMaterials ?? '--'} / ${stats?.totalMaterials ?? '--'}`}
                 description="Disponibles / Total"
             />
             <StatCard 

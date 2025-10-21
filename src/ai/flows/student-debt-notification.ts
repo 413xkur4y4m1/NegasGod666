@@ -1,169 +1,159 @@
+'use server';
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { sendNotificationEmail } from '@/lib/send-notification';
 import { ref, get, push, serverTimestamp, query, orderByChild, equalTo, limitToLast } from 'firebase/database';
 import { db } from '@/lib/firebase';
+import { sendNotificationEmail } from '@/lib/send-notification';
 import { sendClientNotification } from '@/lib/client-notifications';
+import { User, Loan, UserSchema, LoanSchema } from '@/lib/types';
+import { logger } from '@/lib/logger';
 
-// Esquema para la salida de la notificación generada por IA
+// NOTE: The file name is misleading. This flow handles LOAN REMINDERS, not debts.
+
+// --- ZOD SCHEMAS ---
 const NotificationOutputSchema = z.object({
-  to: z.string().describe('Correo del destinatario'),
-  subject: z.string().describe('Asunto del correo'),
-  content: z.string().describe('Contenido HTML del correo'),
-  recipientName: z.string().describe('Nombre del destinatario'),
+  to: z.string().email(),
+  subject: z.string(),
+  content: z.string(),
+  recipientName: z.string(),
 });
 
-// Esquema para la entrada del prompt de IA
-const DebtPromptInputSchema = z.object({
-  user: z.any().describe('Objeto del usuario desde Firebase'),
-  loan: z.any().describe('Objeto del préstamo desde Firebase'),
-  // FIX: Especificamos .int() para evitar incompatibilidades de esquema con la API de Google.
-  diffDays: z.number().int().describe('Días hasta el vencimiento (positivo) o días de retraso (negativo/cero)'),
+const LoanReminderPromptInputSchema = z.object({
+  user: UserSchema,
+  loan: LoanSchema,
+  diffDays: z.number().int(),
 });
 
-// Definición del Prompt de Genkit
-const debtNotificationPrompt = ai.definePrompt({
-  name: 'debtNotificationPrompt',
-  input: { schema: DebtPromptInputSchema },
+// --- AI PROMPT ---
+const loanReminderPrompt = ai.definePrompt({
+  name: 'loanReminderPrompt',
+  input: { schema: LoanReminderPromptInputSchema },
   output: { schema: NotificationOutputSchema },
   prompt: `
-    Eres un asistente en el sistema de préstamos de la biblioteca de LaSalle.
-    Tu tarea es generar un recordatorio sobre un préstamo.
+    Eres un asistente en el sistema de préstamos del laboratorio de gastronomía de la Universidad LaSalle.
+    Tu tarea es generar un recordatorio sobre un préstamo, basándote en los días que faltan para su vencimiento o los días que lleva de retraso.
 
     DATOS DEL PRÉSTAMO:
-    - Estudiante: \${JSON.stringify(user)}
-    - Préstamo: \${JSON.stringify(loan)}
-    - Días para vencer/vencido: \${diffDays}
+    - Estudiante: ${'JSON.stringify(user)'}
+    - Préstamo: ${'JSON.stringify(loan)'}
+    - Días para vencer/vencido: ${'diffDays'}
 
     INSTRUCCIONES:
     1.  **Analiza \`diffDays\`:**
-        *   Si \`diffDays\` es positivo, es un recordatorio de "próximo vencimiento".
-        *   Si \`diffDays\` es cero o negativo, es una notificación de "préstamo vencido".
+        *   Si es positivo, es un recordatorio de "próximo vencimiento".
+        *   Si es cero o negativo, es una notificación de "préstamo vencido".
 
-    2.  **Genera el contenido:**
-        *   **Asunto (subject):** Crea un asunto claro y conciso. Ej: "Recordatorio de Préstamo" o "Aviso de Préstamo Vencido".
-        *   **Nombre del destinatario (recipientName):** Usa el nombre completo del usuario.
-        *   **Correo (to):** Usa el email del usuario.
-        *   **Contenido (content):** Escribe un mensaje en HTML. Sé profesional y amable.
-            - Menciona el nombre del estudiante, el nombre del material prestado (\`loan.materialName\`).
-            - Si es un recordatorio, indica cuántos días quedan.
-            - Si está vencido, indica cuántos días de retraso tiene.
-            - Anima al estudiante a devolver el material pronto.
+    2.  **Genera el contenido del correo:**
+        *   **Asunto (subject):** Claro y conciso. Ej: "Recordatorio de Préstamo" o "Aviso de Préstamo Vencido".
+        *   **Nombre del destinatario (recipientName):** Usa el \`nombre\` completo del usuario.
+        *   **Correo (to):** Usa el \`correo\` del usuario.
+        *   **Contenido (content):** Escribe un mensaje en HTML profesional y amable.
+            - Menciona el nombre del estudiante (\`user.nombre\`).
+            - Menciona el material prestado (\`loan.nombreMaterial\`).
+            - Si es un recordatorio, indica los días que quedan (\`diffDays\`).
+            - Si está vencido, indica los días de retraso (el valor absoluto de \`diffDays\`).
+            - Anima al estudiante a devolver el material lo antes posible.
   `,
 });
 
-
-// Esquema para la entrada del flujo principal
-const StudentDebtNotificationInputSchema = z.object({
-  userId: z.string().optional().describe('El ID del usuario a notificar (opcional, para notificar a uno solo)'),
+// --- MAIN FLOW ---
+const LoanReminderInputSchema = z.object({
+  userId: z.string().optional().describe('Opcional. El ID del usuario a notificar para un recordatorio específico.'),
 });
 
-// Esquema para la salida del flujo principal
-const StudentDebtNotificationOutputSchema = z.object({
-  response: z.string().describe('Confirmación del envío o mensaje de error'),
+const LoanReminderOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  notificationsSent: z.number(),
 });
 
-export type StudentDebtNotificationInput = z.infer<typeof StudentDebtNotificationInputSchema>;
-
-// El Flujo principal de Genkit
-export const studentDebtNotificationFlow = ai.defineFlow(
+export const loanReminderNotificationFlow = ai.defineFlow(
   {
-    name: 'studentDebtNotificationFlow',
-    inputSchema: StudentDebtNotificationInputSchema,
-    outputSchema: StudentDebtNotificationOutputSchema,
+    name: 'loanReminderNotificationFlow',
+    inputSchema: LoanReminderInputSchema,
+    outputSchema: LoanReminderOutputSchema,
   },
   async ({ userId }) => {
+    let notificationsSent = 0;
     try {
-      const loansRef = ref(db, 'prestamos');
-      const usersRef = ref(db, 'usuarios');
-      const notificationsRef = ref(db, 'notificaciones');
-
       const [loansSnapshot, usersSnapshot] = await Promise.all([
-        get(loansRef),
-        get(usersRef),
+        get(ref(db, 'prestamos')),
+        get(ref(db, 'alumnos')), 
       ]);
 
-      const loans = loansSnapshot.val() || {};
-      const users = usersSnapshot.val() || {};
+      const allLoans = loansSnapshot.val() || {};
+      const allUsers = usersSnapshot.val() || {};
       const now = new Date();
 
-      for (const loanId in loans) {
-        const loan = loans[loanId];
-        const studentId = loan.studentId;
-
-        if (userId && studentId !== userId) {
-          continue; // Si se busca un usuario específico, ignorar los demás
+      for (const loanId in allLoans) {
+        const loanParseResult = LoanSchema.safeParse({ ...allLoans[loanId], idPrestamo: loanId });
+        if (!loanParseResult.success) {
+            logger.chatbot('admin', 'invalid-loan-data', { loanId, error: loanParseResult.error }, 'warning');
+            continue; 
         }
+        const loan = loanParseResult.data;
 
-        const user = users[studentId];
-        if (!user || loan.status !== 'prestado') {
+        const user = Object.values(allUsers).find((u: any) => u.matricula === loan.matriculaAlumno) as User | undefined;
+        if (!user || (userId && user.uid !== userId)) {
           continue;
         }
+        
+        const userParseResult = UserSchema.safeParse(user);
+        if (!userParseResult.success || loan.status !== 'activo') {
+            if (!userParseResult.success) logger.chatbot('admin', 'invalid-user-data', { userId: user?.uid, error: userParseResult.error }, 'warning');
+            continue;
+        }
+        const validUser = userParseResult.data;
 
-        const dueDate = new Date(loan.dueDate);
+        const dueDate = new Date(loan.fechaLimite);
         const diffTime = dueDate.getTime() - now.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        const needsNotification = diffDays <= 3; // Notificar si faltan 3 días o menos, o si ya está vencido
-
-        if (needsNotification) {
-          const notificationType = diffDays <= 0 ? 'overdue' : 'due_soon';
-
-          // Evitar spam: no enviar si ya se envió una del mismo tipo en las últimas 24h
-          const recentNotifsQuery = query(
-            notificationsRef,
-            orderByChild('userId'),
-            equalTo(studentId),
-            limitToLast(1)
-          );
+        if (diffDays <= 3) {
+          const notificationType = diffDays <= 0 ? 'overdue_loan' : 'due_soon_loan';
+          
+          const recentNotifsQuery = query(ref(db, 'notificaciones'), orderByChild('userId'), equalTo(validUser.uid), limitToLast(5));
           const recentNotifsSnapshot = await get(recentNotifsQuery);
-
           let shouldSend = true;
+
           if (recentNotifsSnapshot.exists()) {
-            const lastNotif = Object.values(recentNotifsSnapshot.val())[0] as any;
-             if (lastNotif.type === notificationType) {
-              const lastNotifTime = lastNotif.timestamp;
-              const hoursSince = (Date.now() - lastNotifTime) / (1000 * 60 * 60);
-              if (hoursSince < 24) {
+            const lastNotifs = Object.values(recentNotifsSnapshot.val()) as any[];
+            const hasRecentSimilarNotif = lastNotifs.some(notif => 
+                notif.type === notificationType &&
+                (Date.now() - notif.timestamp) / (1000 * 60 * 60) < 24
+            );
+            if (hasRecentSimilarNotif) {
                 shouldSend = false;
-              }
             }
           }
 
           if (shouldSend) {
-            // ¡Aquí es donde la IA genera el mensaje!
-            const { output: notification } = await debtNotificationPrompt({
-              user,
-              loan,
-              diffDays,
-            });
+            const { output: notification } = await loanReminderPrompt({ user: validUser, loan, diffDays });
 
             if (notification) {
-              // 1. Enviar notificación por correo (Outlook)
               await sendNotificationEmail(notification);
+              await sendClientNotification(notification);
 
-              // 2. Enviar notificación a la interfaz del estudiante
-              await sendClientNotification({ ...notification, userId: studentId } as any);
-
-              // 3. Guardar la notificación en la base de datos para el historial
-              await push(notificationsRef, {
-                userId: studentId,
+              await push(ref(db, 'notificaciones'), {
+                userId: validUser.uid,
                 type: notificationType,
-                message: notification.content, // Guardamos el HTML generado
+                message: notification.content,
                 subject: notification.subject,
                 timestamp: serverTimestamp(),
                 read: false,
               });
+              notificationsSent++;
             }
           }
         }
       }
 
-      return { response: 'Proceso de notificación de deudas completado.' };
+      return { success: true, message: `Proceso de recordatorios de préstamos completado. Se enviaron ${notificationsSent} notificaciones.`, notificationsSent };
     } catch (error) {
-      console.error('Error en el flujo de notificación de deudas:', error);
-      throw new Error(`No se pudo completar el flujo: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        logger.error('admin', 'loan-reminder-flow-error', { error: errorMessage });
+        return { success: false, message: `No se pudo completar el flujo: ${errorMessage}`, notificationsSent: 0 };
     }
   }
 );

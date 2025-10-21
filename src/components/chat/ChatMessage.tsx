@@ -22,7 +22,8 @@ interface ChatMessageProps {
 // --- Componentes de Tarjetas de Historial (NUEVO) ---
 
 function LoanHistoryCard({ loan }: { loan: Loan }) {
-  const getStatusIcon = (status: Loan['estado']) => {
+  // CORRECTED: Changed `estado` to `status` to match the updated `Loan` type.
+  const getStatusIcon = (status: Loan['status']) => {
     switch (status) {
       case 'activo': return <Clock className="h-4 w-4 text-blue-500" />;
       case 'devuelto': return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -36,12 +37,14 @@ function LoanHistoryCard({ loan }: { loan: Loan }) {
   return (
     <Card className="w-full text-sm">
       <CardHeader className="flex-row items-center gap-4 p-4">
-        <div className="flex-shrink-0">{getStatusIcon(loan.estado)}</div>
+        {/* CORRECTED: Changed `loan.estado` to `loan.status` */}
+        <div className="flex-shrink-0">{getStatusIcon(loan.status)}</div>
         <div className="flex-grow">
           <p className="font-semibold">{loan.nombreMaterial}</p>
           <p className="text-xs text-muted-foreground">Materia: {loan.materia || 'N/A'}</p>
         </div>
-        <Badge variant="outline" className="capitalize flex-shrink-0">{loan.estado}</Badge>
+        {/* CORRECTED: Changed `loan.estado` to `loan.status` */}
+        <Badge variant="outline" className="capitalize flex-shrink-0">{loan.status}</Badge>
       </CardHeader>
       <CardContent className="p-4 border-t text-xs grid grid-cols-2 gap-2">
         <div className="flex items-center gap-2"><CalendarDays className="h-3 w-3"/><span>Préstamo:</span><span className="font-medium">{loan.fechaPrestamo}</span></div>
@@ -52,7 +55,8 @@ function LoanHistoryCard({ loan }: { loan: Loan }) {
 }
 
 function DebtHistoryCard({ debt }: { debt: Debt }) {
-  const isPaid = debt.estado === 'pagado';
+  // CORRECTED: Changed `debt.estado` to `debt.status`
+  const isPaid = debt.status === 'pagado';
   return (
     <Card className={`w-full text-sm ${isPaid ? 'bg-green-50/50' : 'bg-red-50/50'}`}>
         <CardHeader className="flex-row items-center gap-4 p-4">
@@ -67,7 +71,8 @@ function DebtHistoryCard({ debt }: { debt: Debt }) {
                 <p className={`font-bold text-lg ${isPaid ? 'text-green-600' : 'text-red-600'}`}>
                     ${debt.monto.toFixed(2)}
                 </p>
-                 <Badge variant={isPaid ? 'default' : 'destructive'} className="capitalize">{debt.estado}</Badge>
+                 {/* CORRECTED: Changed `debt.estado` to `debt.status` */}
+                 <Badge variant={isPaid ? 'default' : 'destructive'} className="capitalize">{debt.status}</Badge>
             </div>
         </CardHeader>
     </Card>

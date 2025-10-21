@@ -1,3 +1,4 @@
+'use server';
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
@@ -66,7 +67,7 @@ const notificationSenderFlow = ai.defineFlow(
     try {
       const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
         get(ref(db, 'prestamos')),
-        get(ref(db, 'usuarios')),
+        get(ref(db, 'alumnos')), // FIX: de 'usuarios' a 'alumnos'
         get(ref(db, 'materiales'))
       ]);
       contextData = {

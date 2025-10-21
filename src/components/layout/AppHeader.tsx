@@ -44,7 +44,8 @@ export function AppHeader() {
 
       const upcomingLoans = Object.values(loans)
         .filter((loan: any) => {
-            if (loan.estado !== 'activo') return false;
+            // CORRECTED: Changed `loan.estado` to `loan.status` to match the updated `Loan` type.
+            if (loan.status !== 'activo') return false;
             const diff = differenceInDays(parseISO(loan.fechaLimite), new Date());
             return diff >= 0 && diff <= 3;
         }) as Loan[];

@@ -1,15 +1,14 @@
 
-// src/app/admin/materials/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { Material } from '@/lib/types';
+import { Material, MaterialSchema } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Package } from 'lucide-react';
-import Image from 'next/image';
+import { Loader2, Package, ImageOff } from 'lucide-react'; // Import ImageOff icon
+import { logger } from '@/lib/logger';
 
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -20,12 +19,24 @@ export default function MaterialsPage() {
     const unsubscribe = onValue(materialsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // The data is an object with IDs as keys, so we convert it to an array
-        const materialList = Object.keys(data).map(key => ({
-            id: key,
-            ...data[key]
-        })) as Material[];
-        setMaterials(materialList);
+        const parsedMaterials: Material[] = [];
+        for (const key in data) {
+          const result = MaterialSchema.safeParse({ id: key, ...data[key] });
+          if (result.success) {
+            parsedMaterials.push(result.data);
+          } else {
+            logger.chatbot(
+              'admin',
+              'invalid-material-data',
+              {
+                error: result.error.flatten(),
+                materialId: key
+              },
+              'warning'
+            );
+          }
+        }
+        setMaterials(parsedMaterials);
       } else {
         setMaterials([]);
       }
@@ -39,8 +50,8 @@ export default function MaterialsPage() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-headline">
-            <Package className="h-6 w-6" />
-            Gestión de Materiales
+          <Package className="h-6 w-6" />
+          Gestión de Materiales
         </CardTitle>
         <CardDescription>Aquí puedes ver y gestionar el inventario de materiales.</CardDescription>
       </CardHeader>
@@ -56,8 +67,8 @@ export default function MaterialsPage() {
                 <TableRow>
                   <TableHead>Material</TableHead>
                   <TableHead>Marca</TableHead>
-                  <TableHead>Cantidad Disponible</TableHead>
-                  <TableHead>Precio Unitario</TableHead>
+                  <TableHead>Cantidad Total</TableHead> {/* CORRECTED: Changed label */}
+                  <TableHead className="text-right">Precio Unitario</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -65,20 +76,18 @@ export default function MaterialsPage() {
                   <TableRow key={material.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                          <Image 
-                              src={material.imageUrl?.startsWith('/uploads/') ? material.imageUrl : `/uploads/default-${material.id}.jpg`}
-                              alt={material.nombre}
-                              width={40}
-                              height={40}
-                              className="rounded-md object-cover"
-                              data-ai-hint="kitchen utensil"
-                          />
-                          <span className="font-medium">{material.nombre}</span>
+                        {/* CORRECTED: Replaced Image with an icon */}
+                        <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-md">
+                          <ImageOff className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <span className="font-medium">{material.nombre}</span>
                       </div>
                     </TableCell>
                     <TableCell>{material.marca}</TableCell>
-                    <TableCell>{material.cantidad}</TableCell>
-                    <TableCell>${material.precioUnitario.toFixed(2)}</TableCell>
+                    <TableCell>{material.cantidad}</TableCell> {/* CORRECTED: Changed to 'cantidad' */}
+                    <TableCell className="text-right">
+                      ${(material.precioUnitario || 0).toFixed(2)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -87,7 +96,7 @@ export default function MaterialsPage() {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p>No hay materiales registrados en el inventario.</p>
-             <p className="text-sm">Usa el Asistente Administrativo para agregar nuevos materiales.</p>
+            <p className="text-sm">Usa el Asistente Administrativo para agregar nuevos materiales.</p>
           </div>
         )}
       </CardContent>

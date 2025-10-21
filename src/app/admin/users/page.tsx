@@ -1,11 +1,11 @@
-
 // src/app/admin/users/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { User } from '@/lib/types';
+// CORRECTED: Import UserSchema for data validation and transformation.
+import { User, UserSchema } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,10 +21,17 @@ export default function UsersPage() {
     const unsubscribe = onValue(usersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const userList = Object.keys(data).map(key => ({
-            ...data[key],
-            uid: data[key].uid || key, // Ensure UID is present, fallback to key
-        })) as User[];
+        // CORRECTED: Use UserSchema.safeParse to validate and transform data.
+        const userList = Object.keys(data).map(key => {
+            const rawUser = { ...data[key], uid: data[key].uid || key };
+            const parsed = UserSchema.safeParse(rawUser);
+            if (parsed.success) {
+                return parsed.data;
+            }
+            console.warn(`Invalid user data for key ${key}:`, parsed.error);
+            return null;
+        }).filter((user): user is User => user !== null);
+
         setUsers(userList);
       } else {
         setUsers([]);
@@ -79,7 +86,8 @@ export default function UsersPage() {
                               <AvatarFallback>{getInitials(user.nombre)}</AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                              <span className="font-medium">{`${user.nombre} ${user.apellido_p || ''}`}</span>
+                              {/* CORRECTED: Use camelCase properties 'apellidoP' and 'apellidoM'. */}
+                              <span className="font-medium">{`${user.nombre} ${user.apellidoP || ''} ${user.apellidoM || ''}`}</span>
                               <span className="text-sm text-muted-foreground">{user.correo}</span>
                           </div>
                       </div>

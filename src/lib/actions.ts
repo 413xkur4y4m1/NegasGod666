@@ -24,7 +24,7 @@ export async function createLoan(loanData: Partial<Loan>) {
         nombreAlumno: loanData.nombreAlumno || 'N/A',
         fechaPrestamo: loanData.fechaPrestamo || new Date().toISOString().split('T')[0],
         fechaLimite: loanData.fechaLimite || 'N/A',
-        estado: 'pendiente', // Loans start as pending approval
+        status: 'pendiente', // Loans start as pending approval
         materia: loanData.materia || 'N/A',
         precioUnitario: loanData.precioUnitario || 0,
     };

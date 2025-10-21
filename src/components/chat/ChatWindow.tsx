@@ -12,7 +12,7 @@ import { ChatMessage } from './ChatMessage';
 import { nanoid } from 'nanoid';
 import { chatbotAssistedLoanRequest, ChatbotOutputSchema } from '@/ai/flows/chatbot-assisted-loan-requests';
 import { createLoan } from '@/lib/actions';
-import { z } from 'zod'; // FIX: Se importa la librería 'zod'.
+import { z } from 'zod';
 
 export function ChatWindow() {
   const { user } = useAuth();
@@ -85,7 +85,7 @@ export function ChatWindow() {
       nombreMaterial: material.name,
       matriculaAlumno: user.matricula,
       nombreAlumno: user.nombre,
-      estado: 'pendiente',
+      status: 'pendiente',
     };
 
     const confirmationMessage: ChatMessageType = {

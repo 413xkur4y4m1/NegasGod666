@@ -126,7 +126,8 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div>
                 <Label>Nombre</Label>
-                <Input value={`${user.nombre} ${user.apellido_p || ''} ${user.apellido_m || ''}`} disabled />
+                {/* CORRECTED: Changed to camelCase */}
+                <Input value={`${user.nombre} ${user.apellidoP || ''} ${user.apellidoM || ''}`} disabled />
              </div>
              <div>
                 <Label>Matrícula</Label>

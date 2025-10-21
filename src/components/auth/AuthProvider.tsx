@@ -7,7 +7,7 @@ import { ref, get, set, update } from 'firebase/database';
 
 import { auth, db } from '@/lib/firebase';
 import { AuthContext, AuthContextType } from '@/context/AuthContext';
-import { User } from '@/lib/types';
+import { User, UserSchema } from '@/lib/types';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -29,46 +29,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userIsAdmin = adminEmails.includes(fbUser.email || '');
 
     const matricula = fbUser.email!.split('@')[0];
-    const userRef = ref(db, `alumnos/${matricula}`); // FIX: Changed to 'alumnos'
+    const userRef = ref(db, `alumno/${matricula}`);
     const snapshot = await get(userRef);
 
     let appUser: User;
+    const rawDbUser = snapshot.val();
 
-    if (snapshot.exists()) {
-      const dbUser = snapshot.val();
+    if (rawDbUser) {
       const updates = {
-        ultimoAcceso: new Date().toISOString(),
-        nombre: fbUser.displayName || dbUser.nombre,
-        photoURL: fbUser.photoURL || dbUser.photoURL || null,
+        ultimo_acceso: new Date().toISOString(),
+        nombre: fbUser.displayName || rawDbUser.nombre,
+        photoURL: fbUser.photoURL || rawDbUser.photoURL || null,
       };
       await update(userRef, updates);
-      appUser = { ...dbUser, ...updates, isAdmin: userIsAdmin, uid: fbUser.uid };
+      
+      const updatedRawUser = { ...rawDbUser, ...updates, uid: fbUser.uid };
+      const parsedUser = UserSchema.safeParse(updatedRawUser);
+
+      if(parsedUser.success) {
+        appUser = { ...parsedUser.data, isAdmin: userIsAdmin };
+      } else {
+        console.error("Error parsing user from DB:", parsedUser.error);
+        cleanupAuthState();
+        return;
+      }
     } else {
       const names = fbUser.displayName?.split(' ') || ['Nuevo', 'Usuario'];
       const nombre = names.slice(0, -2).join(' ') || names[0];
-      const apellido_p = names.length > 2 ? names[names.length-2] : names[1] || '';
-      const apellido_m = names.length > 2 ? names[names.length-1] : '';
+      const apellidoP = names.length > 2 ? names[names.length-2] : names[1] || '';
+      const apellidoM = names.length > 2 ? names[names.length-1] : '';
 
-      appUser = {
+      const rawNewUser = {
         uid: fbUser.uid,
         matricula,
         nombre: nombre,
-        apellido_p: apellido_p,
-        apellido_m: apellido_m,
+        apellido_p: apellidoP,
+        apellido_m: apellidoM,
         correo: fbUser.email!,
         isAdmin: userIsAdmin,
         provider: (fbUser.providerData[0]?.providerId as 'microsoft.com') || 'password',
-        fechaRegistro: new Date().toISOString(),
-        ultimoAcceso: new Date().toISOString(),
+        fecha_registro: new Date().toISOString(),
+        ultimo_acceso: new Date().toISOString(),
         photoURL: fbUser.photoURL || null,
+        chatbot_name: nombre.split(' ')[0], // Add default chatbot name
       };
-      await set(userRef, appUser);
+      await set(userRef, rawNewUser);
+      const parsedUser = UserSchema.safeParse(rawNewUser);
+      if(parsedUser.success) {
+        appUser = parsedUser.data;
+      } else {
+        console.error("Error parsing new user:", parsedUser.error);
+        cleanupAuthState();
+        return;
+      }
     }
     
     setUser(appUser);
-    setIsAdmin(userIsAdmin);
+    setIsAdmin(appUser.isAdmin);
     localStorage.setItem('userData', JSON.stringify(appUser));
-  }, []);
+  }, [cleanupAuthState]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
@@ -76,22 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setFirebaseUser(fbUser);
         await handleUserSession(fbUser);
       } else {
-        const storedUserData = localStorage.getItem('userData');
-        if (storedUserData) {
-          try {
-            const storedUser = JSON.parse(storedUserData);
-            if (storedUser.provider === 'manual' && storedUser.isAdmin) {
-              setUser(storedUser);
-              setIsAdmin(true);
-            } else {
-              cleanupAuthState();
-            }
-          } catch (e) {
-            cleanupAuthState();
-          }
-        } else {
-          cleanupAuthState();
-        }
+        cleanupAuthState();
       }
       setLoading(false);
     });
@@ -100,23 +104,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleUserSession, cleanupAuthState]);
   
   useEffect(() => {
-    if (loading) return; // No hacer nada mientras se carga
-
+    if (loading) return;
     const isAuthPage = pathname === '/login' || pathname === '/signup';
 
-    // Si el usuario está autenticado
     if (user) {
-      // Si está en una página de autenticación o en la raíz, redirigir al panel correspondiente
       if (isAuthPage || pathname === '/') {
         router.replace(user.isAdmin ? '/admin' : '/dashboard');
       }
-    } 
-    // Si el usuario NO está autenticado
-    else {
-      // Y está intentando acceder a una ruta protegida
+    } else {
       const isProtectedRoute = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/profile');
       if (isProtectedRoute) {
-        // Redirigirlo a la página de login unificada
         router.replace('/login');
       }
     }
@@ -128,7 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const result = await signInWithPopup(auth, provider);
       await handleUserSession(result.user);
-      // La redirección se gestiona en el useEffect principal
     } catch(error: any) {
         let description = 'No se pudo iniciar sesión con Microsoft.';
         if (error.code === 'auth/account-exists-with-different-credential') {
@@ -149,23 +145,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         uid: 'admin-manual',
         matricula: 'admin',
         nombre: 'Administrador',
-        apellido_p: '', // FIX
-        apellido_m: '', // FIX
+        apellidoP: '',
+        apellidoM: '',
         correo: email,
         isAdmin: true,
         provider: 'manual',
         fechaRegistro: new Date().toISOString(),
         ultimoAcceso: new Date().toISOString(),
+        carrera: undefined,
+        photoURL: null,
+        chatbotName: 'Admin',
     };
     
     localStorage.setItem('userData', JSON.stringify(adminUser));
     setUser(adminUser);
     setIsAdmin(true);
-    // La redirección la maneja el useEffect principal
   };
   
   const handleLoginWithMatricula = async (matriculaInput: string, password: string) => {
-    const userRef = ref(db, `alumnos/${matriculaInput}`); // FIX: Changed to 'alumnos'
+    const userRef = ref(db, `alumno/${matriculaInput}`);
     const snapshot = await get(userRef);
 
     if (!snapshot.exists()) {
@@ -182,7 +180,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     
     await handleUserSession(fbUser);
-    // La redirección la maneja el useEffect principal
   };
 
   const handleRegister = async (userData: any) => {
@@ -191,32 +188,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Este correo ya está registrado.');
     }
 
-    const matriculaSnapshot = await get(ref(db, `alumnos/${userData.matricula}`)); // FIX: Changed to 'alumnos'
+    const matriculaSnapshot = await get(ref(db, `alumno/${userData.matricula}`));
     if (matriculaSnapshot.exists()) {
         throw new Error('Esta matrícula ya está registrada.');
     }
 
     const { user: fbUser } = await createUserWithEmailAndPassword(auth, userData.correo, userData.password);
+    // CORRECTED: Read snake_case from form data, but construct displayName with camelCase logic for consistency.
     const displayName = `${userData.nombre} ${userData.apellido_p} ${userData.apellido_m}`;
     await updateProfile(fbUser, { displayName });
 
-    const newUser: User = {
+    const rawNewUser = {
         uid: fbUser.uid,
         matricula: userData.matricula,
         nombre: userData.nombre,
-        apellido_p: userData.apellido_p,
+        apellido_p: userData.apellido_p, 
         apellido_m: userData.apellido_m,
         carrera: userData.carrera,
-        correo: userData.correo, // FIX: Added missing 'correo' property
-        isAdmin: false, // FIX: Explicitly set isAdmin to false
-        chatbotName: userData.chatbotName,
+        correo: userData.correo,
+        isAdmin: false,
+        chatbot_name: userData.chatbotName,
         photoURL: fbUser.photoURL || null,
-        provider: 'password',
-        fechaRegistro: new Date().toISOString(),
-        ultimoAcceso: new Date().toISOString(),
+        provider: 'password', 
+        fecha_registro: new Date().toISOString(),
+        ultimo_acceso: new Date().toISOString(),
     };
     
-    await set(ref(db, `alumnos/${userData.matricula}`), newUser); // FIX: Changed to 'alumnos'
+    await set(ref(db, `alumno/${userData.matricula}`), rawNewUser);
     router.push('/login');
     return fbUser;
   };
@@ -237,9 +235,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await updateProfile(firebaseUser, profileData);
       if (user && user.matricula) {
-        const userRef = ref(db, `alumnos/${user.matricula}`); // FIX: Changed to 'alumnos'
+        const userRef = ref(db, `alumno/${user.matricula}`);
         await update(userRef, { photoURL: profileData.photoURL });
-        setUser({ ...user, photoURL: profileData.photoURL || null });
+        const updatedUser = { ...user, photoURL: profileData.photoURL || null };
+        setUser(updatedUser);
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
       }
     } catch (error) {
       console.error("Error updating profile:", error);

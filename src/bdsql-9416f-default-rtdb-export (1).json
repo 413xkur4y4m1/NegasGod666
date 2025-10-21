@@ -1,0 +1,2658 @@
+{
+  "adeudos": {
+    "-OS_l-g7kB_6dkpj_7y9": {
+      "descripcion": "Material perdido: Cafetera",
+      "estado": "pendiente",
+      "fecha_actualizacion": "2025-06-12T20:10:38.176Z",
+      "fecha_adeudo": "2025-06-12",
+      "id_material": "Cafetera",
+      "matricula_alumno": "244011",
+      "monto": 589,
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Cafetera"
+    },
+    "-OSbgWTxPB0iXTEJSNuf": {
+      "apellido_m": "",
+      "apellido_p": "",
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "descripcion": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $589 MXN.\n\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nDepartamento de Control Escolar\nULZA",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T05:10:14.306Z",
+      "fecha_actualizacion": "2025-06-13T05:10:14.306Z",
+      "id": "-OSbgWTxPB0iXTEJSNuf",
+      "material": {
+        "id": "cafetera",
+        "nombre": "Cafetera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $589 MXN.\n\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nDepartamento de Control Escolar\nULZA",
+      "monto": 589,
+      "nombre": "DANIEL ALEJANDRO PEREZ ESQUIVEL"
+    },
+    "-OSbpkfpSr85sJP4OPie": {
+      "apellido_m": "",
+      "apellido_p": "",
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "descripcion": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $1500 MXN.\n\n\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nDepartamento de Control Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T05:50:35.823Z",
+      "fecha_actualizacion": "2025-06-13T05:50:35.824Z",
+      "id": "-OSbpkfpSr85sJP4OPie",
+      "material": {
+        "id": "caja_de_almacenamiento_con_tapa",
+        "nombre": "Caja de almacenamiento con tapa"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $1500 MXN.\n\n\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nDepartamento de Control Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 1500,
+      "nombre": "DANIEL ALEJANDRO PEREZ ESQUIVEL"
+    },
+    "-OSbtzZTO92SUn4A-H-x": {
+      "descripcion": "Material perdido: Budinera",
+      "estado": "pendiente",
+      "fecha_actualizacion": "2025-06-13T06:09:05.361Z",
+      "fecha_adeudo": "2025-06-13",
+      "id_material": "Budinera",
+      "matricula_alumno": "244650",
+      "monto": 696,
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL undefined undefined",
+      "nombre_material": "Budinera"
+    },
+    "-OSdUU1QlI5iorNGerrZ": {
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T13:32:30.517Z",
+      "id": "-OSdUU1QlI5iorNGerrZ",
+      "material": {
+        "id": "bowl_chico",
+        "nombre": "Bowl chico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $407 MXN.\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nAdministración UL Saneza",
+      "monto": 407,
+      "tipo": "adeudo"
+    },
+    "-OSdW1Q7Qra5U28mjKAp": {
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T13:39:17.599Z",
+      "id": "-OSdW1Q7Qra5U28mjKAp",
+      "material": {
+        "id": "bowl_grande",
+        "nombre": "Bowl grande"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $498 MXN.\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nAdministración UL Saneza",
+      "monto": 498,
+      "tipo": "adeudo"
+    },
+    "-OSdXOKCLGS-RYg-Hi30": {
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T13:45:13.567Z",
+      "id": "-OSdXOKCLGS-RYg-Hi30",
+      "material": {
+        "id": "azucarera",
+        "nombre": "Azucarera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $97 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 97,
+      "tipo": "adeudo"
+    },
+    "-OSdwvm-rDI9z54aRnoD": {
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T15:41:10.373Z",
+      "id": "-OSdwvm-rDI9z54aRnoD",
+      "material": {
+        "id": "azucarera",
+        "nombre": "Azucarera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $97 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 97,
+      "tipo": "adeudo"
+    },
+    "-OSe8OtFEWW4kBJiIdTX": {
+      "asunto": "Daño del material ",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T16:35:39.425Z",
+      "id": "-OSe8OtFEWW4kBJiIdTX",
+      "material": {
+        "id": "cafetera",
+        "nombre": "Cafetera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $589 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 589,
+      "tipo": "adeudo"
+    },
+    "-OSeYzPfOl2q-MJrzl_x": {
+      "asunto": "Daño del material ",
+      "correo": "244024@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T18:31:48.785Z",
+      "id": "-OSeYzPfOl2q-MJrzl_x",
+      "material": {
+        "id": "azucarera",
+        "nombre": "Azucarera"
+      },
+      "matricula": "244024",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $97 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 97,
+      "tipo": "adeudo"
+    },
+    "-OSeZHk4JNHW14aIF1dk": {
+      "descripcion": "Material perdido: Azucarera",
+      "estado": "pendiente",
+      "fecha_actualizacion": "2025-06-13T18:33:07.956Z",
+      "fecha_adeudo": "2025-06-13",
+      "id_material": "Azucarera",
+      "matricula_alumno": "244512",
+      "monto": 97,
+      "nombre_alumno": "KEVIN SANDOVAL NIEVES Sandoval Nieves",
+      "nombre_material": "Azucarera"
+    },
+    "-OaNlPF3rKOXDwIqqK9O": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T03:58:33.346Z",
+      "id": "-OaNlPF3rKOXDwIqqK9O",
+      "material": {
+        "id": "cable_de_cafetera",
+        "nombre": "Cable de cafetera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $375 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 375,
+      "tipo": "adeudo"
+    },
+    "-OaNlRn3JwpjPT7ERjiP": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T03:58:43.777Z",
+      "id": "-OaNlRn3JwpjPT7ERjiP",
+      "material": {
+        "id": "cable_de_cafetera",
+        "nombre": "Cable de cafetera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $375 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 375,
+      "tipo": "adeudo"
+    },
+    "-OaNmCt1yaRaCvAwmqdk": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T04:02:04.857Z",
+      "id": "-OaNmCt1yaRaCvAwmqdk",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaNmu0ZfORAH9jJWX3Z": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T04:05:05.626Z",
+      "id": "-OaNmu0ZfORAH9jJWX3Z",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaNo59qLurnPzovwQAT": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T04:10:17.514Z",
+      "id": "-OaNo59qLurnPzovwQAT",
+      "material": {
+        "id": "batidor_globo",
+        "nombre": "Batidor globo"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $204 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 204,
+      "tipo": "adeudo"
+    },
+    "-OaNpojQGN04rgYgdxbI": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T04:17:50.418Z",
+      "id": "-OaNpojQGN04rgYgdxbI",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaRqZIS9aPu6DF1vSCo": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T22:59:34.566Z",
+      "id": "-OaRqZIS9aPu6DF1vSCo",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaRuesLfxPGbCNc-Gxq": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T23:17:29.969Z",
+      "id": "-OaRuesLfxPGbCNc-Gxq",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaRuoJUr9YFC9vhvsMx": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T23:18:08.640Z",
+      "id": "-OaRuoJUr9YFC9vhvsMx",
+      "material": {
+        "id": "bowl_grande",
+        "nombre": "Bowl grande"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $498 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 498,
+      "tipo": "adeudo"
+    },
+    "-OaRzuoX3_cjOvyKeVTG": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T23:40:25.891Z",
+      "id": "-OaRzuoX3_cjOvyKeVTG",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaS1Laa_YIHr6n2p8G3": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-09-30T23:51:03.941Z",
+      "id": "-OaS1Laa_YIHr6n2p8G3",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaS5LtNyQ72rJADZgcF": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T00:08:33.683Z",
+      "id": "-OaS5LtNyQ72rJADZgcF",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaS8U2Sazv_K5kcgk5g": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T00:22:13.497Z",
+      "id": "-OaS8U2Sazv_K5kcgk5g",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaSCwegGbaMo_JQQ3dW": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T00:41:43.341Z",
+      "id": "-OaSCwegGbaMo_JQQ3dW",
+      "material": {
+        "id": "azucarera",
+        "nombre": "Azucarera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $97 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 97,
+      "tipo": "adeudo"
+    },
+    "-OaSNyJ80dZRfnhTCBuK": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T01:29:53.622Z",
+      "id": "-OaSNyJ80dZRfnhTCBuK",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaSP6ksDHk2GkynqIlA": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T01:34:54.467Z",
+      "id": "-OaSP6ksDHk2GkynqIlA",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaSPrZkj5cawyx6_0Wp": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T01:38:10.298Z",
+      "id": "-OaSPrZkj5cawyx6_0Wp",
+      "material": {
+        "id": "accesorios_de_procesador",
+        "nombre": "Accesorios de procesador"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $800 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 800,
+      "tipo": "adeudo"
+    },
+    "-OaSUPwQ_9nu9ystQ7Wb": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T01:58:03.735Z",
+      "id": "-OaSUPwQ_9nu9ystQ7Wb",
+      "material": {
+        "id": "cambro_12_l",
+        "nombre": "Cambro 12 L."
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $386 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 386,
+      "tipo": "adeudo"
+    },
+    "-OaSgaQQ4hGcQxE0mZom": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T02:55:38.618Z",
+      "id": "-OaSgaQQ4hGcQxE0mZom",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaSnd3Vv9_lLeUtodTq": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T03:26:24.425Z",
+      "id": "-OaSnd3Vv9_lLeUtodTq",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaSpOEq9luGYCBgfHFW": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T03:34:03.897Z",
+      "id": "-OaSpOEq9luGYCBgfHFW",
+      "material": {
+        "id": "charola_levantamuertos_20_x_15_x_5",
+        "nombre": "Charola levantamuertos 20\" x 15\" x 5\""
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $208.29 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 208.29,
+      "tipo": "adeudo"
+    },
+    "-OaSret0litFJB713dDF": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T03:44:00.450Z",
+      "id": "-OaSret0litFJB713dDF",
+      "material": {
+        "id": "azucarera",
+        "nombre": "Azucarera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $97 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 97,
+      "tipo": "adeudo"
+    },
+    "-OaStBqynohxPPkY_cJQ": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T03:50:41.723Z",
+      "id": "-OaStBqynohxPPkY_cJQ",
+      "material": {
+        "id": "cafetera",
+        "nombre": "Cafetera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $589 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 589,
+      "tipo": "adeudo"
+    },
+    "-OaT-CSg2Zl41b6I9fbv": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:21:19.194Z",
+      "id": "-OaT-CSg2Zl41b6I9fbv",
+      "material": {
+        "id": "charola_levantamuertos_20_x_15_x_5",
+        "nombre": "Charola levantamuertos 20\" x 15\" x 5\""
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $208.29 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 208.29,
+      "tipo": "adeudo"
+    },
+    "-OaT0PT6DzEYlfhdWINu": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:26:34.698Z",
+      "id": "-OaT0PT6DzEYlfhdWINu",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaT1T7N3cUZ5jxCiUqy": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:31:11.747Z",
+      "id": "-OaT1T7N3cUZ5jxCiUqy",
+      "material": {
+        "id": "azucarera",
+        "nombre": "Azucarera"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $97 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 97,
+      "tipo": "adeudo"
+    },
+    "-OaT2P-vPecfyaOvwJh1": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:35:17.026Z",
+      "id": "-OaT2P-vPecfyaOvwJh1",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaT3Cp4Na_Ik6jhim1K": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:38:49.259Z",
+      "id": "-OaT3Cp4Na_Ik6jhim1K",
+      "material": {
+        "id": "charola_levantamuertos_20_x_15_x_5",
+        "nombre": "Charola levantamuertos 20\" x 15\" x 5\""
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $208.29 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 208.29,
+      "tipo": "adeudo"
+    },
+    "-OaT44Qz7hCCfIpdKQdj": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:42:37.027Z",
+      "id": "-OaT44Qz7hCCfIpdKQdj",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $984 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 984,
+      "tipo": "adeudo"
+    },
+    "-OaT57ClQgrVIuYIteL3": {
+      "asunto": "si",
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:47:10.547Z",
+      "id": "-OaT57ClQgrVIuYIteL3",
+      "material": {
+        "id": "charola_levantamuertos_20_x_15_x_5",
+        "nombre": "Charola levantamuertos 20\" x 15\" x 5\""
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $208.29 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 208.29,
+      "tipo": "adeudo"
+    },
+    "-OaT5wylkg1V_X-eZAhr": {
+      "asunto": "Hola sando, ya funciona en cpanel esto, no ma me costó mucho pasar node.js a php no es cosa sencilla, si vez esto y no eres kevin sandoval , no te espantes es una prueba de un programa de los alumnos de ingenieria y se cometió un error al escribir el correo al que llegaria el mensaje",
+      "correo": "244512@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-10-01T04:50:46.674Z",
+      "id": "-OaT5wylkg1V_X-eZAhr",
+      "material": {
+        "id": "charola_levantamuertos_20_x_15_x_5",
+        "nombre": "Charola levantamuertos 20\" x 15\" x 5\""
+      },
+      "matricula": "244512",
+      "mensaje": "Estimado/a alumno/a,\n\nLe informamos que tiene un adeudo pendiente por la cantidad de $208.29 MXN.\n\nPor favor, acuda a Control Escolar para realizar el pago correspondiente.\n\nAtentamente,\nControl Escolar\nUniversidad La Salle Nezahualcóyotl",
+      "monto": 208.29,
+      "tipo": "adeudo"
+    },
+    "-Oa_M34tf7Zt57q9XGyc": {
+      "descripcion": "Material perdido: Bambalina",
+      "estado": "pendiente",
+      "fecha_actualizacion": "2025-10-02T14:38:47.004Z",
+      "fecha_adeudo": "2025-10-02",
+      "id_material": "Bambalina",
+      "matricula_alumno": "244650",
+      "monto": 675,
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL undefined undefined",
+      "nombre_material": "Bambalina"
+    },
+    "ejemplo": {
+      "descripcion": "Colegiatura Enero",
+      "estado": "pagado",
+      "fecha_actualizacion": "2025-05-29T17:15:16.217Z",
+      "fecha_adeudo": "2024-01-01",
+      "monto": 2500,
+      "numero": 1
+    }
+  },
+  "admin_access": {
+    "1758907859689": {
+      "action": "login",
+      "admin_id": "unknown",
+      "admin_name": "unknown",
+      "ip_address": "client",
+      "real_timestamp": 1758907859689,
+      "session_id": "session_1758907859689_e5q73w4lm",
+      "timestamp": 1758907860436,
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+    },
+    "1758908169017": {
+      "action": "logout",
+      "admin_id": "admin1",
+      "admin_name": "Juan López",
+      "ip_address": "client",
+      "real_timestamp": 1758908169017,
+      "session_id": "session_1758907859689_e5q73w4lm",
+      "timestamp": 1758908169761,
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+    }
+  },
+  "admin_activity": {
+    "1758908168753": {
+      "action": "logout",
+      "admin_id": "admin1",
+      "admin_name": "Juan López",
+      "description": "Sesión cerrada: timeout_inactive",
+      "real_timestamp": 1758908168753,
+      "session_id": "session_1758907859689_e5q73w4lm",
+      "timestamp": 1758908169702
+    }
+  },
+  "alumno": {
+    "243525": {
+      "correo": "243525@ulsaneza.edu.mx",
+      "fecha_registro": "2025-09-30T04:14:04.642Z",
+      "matricula": "243525",
+      "provider": "password",
+      "ultimo_acceso": "2025-09-30T04:14:20.916Z"
+    },
+    "243676": {
+      "apellido_m": "solteras",
+      "apellido_p": "de mamas",
+      "carrera": "pornografia artistica",
+      "chatbotName": "no estoy",
+      "correo": "243676@ulsaneza.edu.mx",
+      "fecha_registro": "2025-10-10T16:35:37.287Z",
+      "matricula": "243676",
+      "nombre": "follador",
+      "provider": "password",
+      "uid": "wgYW7R8a8JeL8JDPmI3ZF7QmVXu2",
+      "ultimo_acceso": "2025-10-10T16:35:37.287Z"
+    },
+    "243692": {
+      "apellido_m": "blanca",
+      "apellido_p": "larga",
+      "correo": "243525@ulsaneza.edu.mx",
+      "fecha_registro": "2025-09-30T04:14:03.511Z",
+      "matricula": "243692",
+      "nombre": "polla",
+      "password": "12345678",
+      "provider": "password"
+    },
+    "244011": {
+      "apellido_m": "loya",
+      "apellido_p": "diaz",
+      "correo": "244011@ulsaneza.edu.mx",
+      "fecha_registro": "2025-06-09T19:07:28.892Z",
+      "matricula": "244011",
+      "nombre": "said",
+      "password": "123456",
+      "provider": "password",
+      "ultimo_acceso": "2025-06-17T17:55:07.158Z"
+    },
+    "244064": {
+      "apellido_m": "rios",
+      "apellido_p": "cortez",
+      "correo": "244064@ulsaneza.edu.mx",
+      "fecha_registro": "2025-06-06T16:29:34.375Z",
+      "matricula": "244064",
+      "nombre": "giovanni",
+      "password": "123457",
+      "provider": "password",
+      "ultimo_acceso": "2025-06-09T00:49:04.173Z"
+    },
+    "244065": {
+      "apellido_m": "as",
+      "apellido_p": "a",
+      "correo": "244065@lasalle.edu.mx",
+      "fecha_registro": "2025-10-20T16:43:43.402Z",
+      "matricula": "244065",
+      "nombre": "a",
+      "password": "12345678",
+      "provider": "password",
+      "ultimo_acceso": "2025-10-20T16:44:36.883Z"
+    },
+    "244512": {
+      "apellido_m": "Nieves",
+      "apellido_p": "Sandoval",
+      "correo": "244512@ulsaneza.edu.mx",
+      "fecha_registro": "2025-06-09T14:08:52.137Z",
+      "matricula": "244512",
+      "nombre": "KEVIN SANDOVAL NIEVES",
+      "password": "12345678",
+      "prestamos": {
+        "-ObDuHav1SNPyTrxwhlW": {
+          "estado": "pendiente",
+          "fecha_limite": "2025-10-10",
+          "fecha_prestamo": "2025-10-10",
+          "id_material": "MAT001",
+          "id_prestamo": "-ObDuHav1SNPyTrxwhlW",
+          "materia": "COCINA EPICA CON RATATOUILLE",
+          "matricula_alumno": "244512",
+          "nombre_alumno": "KEVIN SANDOVAL NIEVES",
+          "nombre_material": "Cuchillo de utilidad",
+          "precio_unitario": 0
+        }
+      },
+      "provider": "password",
+      "ultimo_acceso": "2025-10-10T16:16:03.132Z"
+    },
+    "244547": {
+      "apellido_m": "ortiz",
+      "apellido_p": "gonzales",
+      "correo": "244547@ulsaneza.edu.mx",
+      "fecha_registro": "2025-06-13T18:38:36.683Z",
+      "matricula": "244547",
+      "nombre": "ambar",
+      "password": "1024567",
+      "provider": "password",
+      "ultimo_acceso": "2025-06-13T18:39:16.411Z"
+    },
+    "244650": {
+      "correo": "244650@ulsaneza.edu.mx",
+      "fecha_registro": "2025-06-05T02:00:38.918Z",
+      "id_microsoft": "L53T9fl1fCgLDODDNZJyj1AJYNn2",
+      "matricula": "244650",
+      "nombre": "DANIEL ALEJANDRO PEREZ ESQUIVEL",
+      "photoURL": "/uploads/1760217477684-L53T9fl1fCgLDODDNZJyj1AJYNn2-piedra.jpg",
+      "prestamos": {
+        "-ObJ3i6CFZlvl5PiBCeD": {
+          "estado": "pendiente",
+          "fecha_limite": "2025-10-24",
+          "fecha_prestamo": "2025-10-11",
+          "id_material": "BAM001",
+          "id_prestamo": "-ObJ3i6CFZlvl5PiBCeD",
+          "materia": "cocina1",
+          "matricula_alumno": "244650",
+          "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL",
+          "nombre_material": "Bambalina (Stage Curtain/Backdrop)",
+          "precio_unitario": 0
+        }
+      },
+      "provider": "microsoft.com",
+      "ultimo_acceso": "2025-10-19T14:51:46.776Z"
+    },
+    "244710": {
+      "correo": "244710@ulsaneza.edu.mx",
+      "fecha_registro": "2025-06-17T17:39:40.596Z",
+      "id_microsoft": "GGr8zwe3cvVdfjqNgHDiZFjaVXE2",
+      "matricula": "244710",
+      "nombre": "CARLOS DANIEL PEREZ ARZATE",
+      "provider": "microsoft.com",
+      "ultimo_acceso": "2025-06-17T17:40:38.346Z"
+    },
+    "244750": {
+      "correo": "244750@ulsaneza.edu.mx",
+      "fecha_registro": "2025-10-10T05:47:56.421Z",
+      "isAdmin": false,
+      "matricula": "244750",
+      "nombre": "Nuevo Usuario",
+      "prestamos": {
+        "-ObBg-eqOR90_4A6c0E8": {
+          "estado": "pendiente",
+          "fecha_limite": "2025-10-09",
+          "fecha_prestamo": "2025-10-10",
+          "id_material": "mat003",
+          "id_prestamo": "-ObBg-eqOR90_4A6c0E8",
+          "materia": "tu puta madre",
+          "matricula_alumno": "244750",
+          "nombre_alumno": "Nuevo Usuario",
+          "nombre_material": "Cuchillo para Pan",
+          "precio_unitario": 0
+        }
+      },
+      "provider": "password",
+      "uid": "tAM53aJqfhMvaCjNEkRVDQ8C1Wb2",
+      "ultimo_acceso": "2025-10-10T06:43:16.341Z"
+    },
+    "245670": {
+      "apellido_m": "Hernández ",
+      "apellido_p": "Pérez ",
+      "carrera": "Iscc",
+      "chatbotName": "Chester",
+      "correo": "245670@ulsaneza.edu.mx",
+      "fecha_registro": "2025-10-12T17:26:45.129Z",
+      "matricula": "245670",
+      "nombre": "Rafael",
+      "provider": "password",
+      "uid": "pWn1BIRpheXZGwVN0232Zmmhgy22",
+      "ultimo_acceso": "2025-10-12T17:26:45.129Z"
+    },
+    "PigvK0B7PtQX8xUB11PRzs9I8D03": {
+      "apellido_m": "Sanchez",
+      "apellido_p": "Meza",
+      "carrera": "ISCC",
+      "correo": "243524@ulsaneza.edu.mx",
+      "fecha_alta": "2025-05-28",
+      "fecha_registro": "2025-05-28T20:02:09.753Z",
+      "matricula": 243524,
+      "nombre": "Daniel"
+    },
+    "TaF6Ds85qCQSP83sfpUhfml5Lz72": {
+      "apellido_m": "Moncada",
+      "apellido_p": "Aparicio",
+      "carrera": "ISSC",
+      "correo": "243876@ulsaneza.edu.mx",
+      "fecha_alta": "2025-05-29",
+      "fecha_registro": "2025-05-29T16:02:36.441Z",
+      "matricula": 243876,
+      "nombre": "Cristian"
+    }
+  },
+  "materiales": {
+    "accesorios_de_procesador": {
+      "anio_compra": 2022,
+      "cantidad": 12,
+      "marca": "n/a",
+      "nombre": "Accesorios de procesador",
+      "precio_ajustado": 899.89,
+      "precio_unitario": 800,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "azucarera": {
+      "anio_compra": 2022,
+      "cantidad": 7,
+      "marca": "Ánfora",
+      "nombre": "Azucarera",
+      "precio_ajustado": 109.11,
+      "precio_unitario": 97,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "bambalina": {
+      "anio_compra": 2022,
+      "cantidad": 10,
+      "marca": "n/a",
+      "nombre": "Bambalina",
+      "precio_ajustado": 759.28,
+      "precio_unitario": 675,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "batidor_globo": {
+      "anio_compra": 2022,
+      "cantidad": 11,
+      "marca": "n/a",
+      "nombre": "Batidor globo",
+      "precio_ajustado": 229.47,
+      "precio_unitario": 204,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "batidora_kitchen": {
+      "anio_compra": 2022,
+      "cantidad": 11,
+      "marca": "Kitchen Aid",
+      "nombre": "Batidora Kitchen",
+      "precio_ajustado": 11374.62,
+      "precio_unitario": 10112,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "bowl_chico": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "TVR Reforzado",
+      "nombre": "Bowl chico",
+      "precio_ajustado": 457.82,
+      "precio_unitario": 407,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "bowl_grande": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "TVR Reforzado",
+      "nombre": "Bowl grande",
+      "precio_ajustado": 560.18,
+      "precio_unitario": 498,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "bowl_mediano": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "TVR Reforzado",
+      "nombre": "Bowl mediano",
+      "precio_ajustado": 529.81,
+      "precio_unitario": 471,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "bscula": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Torrey",
+      "nombre": "Báscula",
+      "precio_ajustado": 4814.42,
+      "precio_unitario": 4280,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "budinera": {
+      "anio_compra": 2022,
+      "cantidad": 18,
+      "marca": "Vasconia",
+      "nombre": "Budinera",
+      "precio_ajustado": 782.91,
+      "precio_unitario": 696,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "caballito_pipetn_4_oz": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Crisa",
+      "nombre": "Caballito Pipetón 4 oz.",
+      "precio_ajustado": 60.74,
+      "precio_unitario": 54,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "caballito_tequilero_15_oz": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Crisa",
+      "nombre": "Caballito tequilero 1.5 oz.",
+      "precio_ajustado": 24.75,
+      "precio_unitario": 22,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cable_de_cafetera": {
+      "anio_compra": 2022,
+      "cantidad": 12,
+      "marca": "Oster",
+      "nombre": "Cable de cafetera",
+      "precio_ajustado": 421.82,
+      "precio_unitario": 375,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "caddy_guarnituras": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "n/a",
+      "nombre": "Caddy guarnituras",
+      "precio_ajustado": 554.56,
+      "precio_unitario": 493,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cafetera": {
+      "anio_compra": 2022,
+      "cantidad": 18,
+      "marca": "Oster",
+      "nombre": "Cafetera",
+      "precio_ajustado": 662.54,
+      "precio_unitario": 589,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "caja_de_almacenamiento_con_tapa": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Araven / Cambro",
+      "nombre": "Caja de almacenamiento con tapa",
+      "precio_ajustado": 1687.3,
+      "precio_unitario": 1500,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cambro_12_l": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Araven / Cambro",
+      "nombre": "Cambro 12 L.",
+      "precio_ajustado": 434.2,
+      "precio_unitario": 386,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cazo_cnico": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Vasconia PRO",
+      "nombre": "Cazo cónico",
+      "precio_ajustado": 1106.87,
+      "precio_unitario": 984,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "charola_levantamuertos_20_x_15_x_5": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "n/a",
+      "nombre": "Charola levantamuertos 20\" x 15\" x 5\"",
+      "precio_ajustado": 234.3,
+      "precio_unitario": 208.29,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "charola_levantamuertos_20_x_15_x_7": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "n/a",
+      "nombre": "Charola levantamuertos 20\" x 15\" x 7\"",
+      "precio_ajustado": 293.65,
+      "precio_unitario": 261.05,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "charola_para_bar": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Charola para bar",
+      "precio_ajustado": 427.45,
+      "precio_unitario": 380,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "charola_para_bocadillos": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "n/a",
+      "nombre": "Charola para bocadillos",
+      "precio_ajustado": 427.45,
+      "precio_unitario": 380,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "charola_para_hornear_chica": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Charola para hornear chica",
+      "precio_ajustado": 240.72,
+      "precio_unitario": 214,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "coladera": {
+      "anio_compra": 2022,
+      "cantidad": 49,
+      "marca": "HS",
+      "nombre": "Coladera",
+      "precio_ajustado": 186.73,
+      "precio_unitario": 166,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "contenedores_de_alcohol": {
+      "anio_compra": 2022,
+      "cantidad": 40,
+      "marca": "n/a",
+      "nombre": "Contenedores de alcohol",
+      "precio_ajustado": 145.11,
+      "precio_unitario": 129,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_agua": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Copa Agua",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_coaquera": {
+      "anio_compra": 2022,
+      "cantidad": 90,
+      "marca": "Crisa",
+      "nombre": "Copa Coñaquera",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_flauta": {
+      "anio_compra": 2022,
+      "cantidad": 90,
+      "marca": "Crisa",
+      "nombre": "Copa Flauta",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_globo_12_oz": {
+      "anio_compra": 2022,
+      "cantidad": 91,
+      "marca": "Crisa",
+      "nombre": "Copa Globo 12 oz.",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_huracn": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Crisa",
+      "nombre": "Copa Huracán",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_margarita": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Crisa",
+      "nombre": "Copa Margarita",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_martini": {
+      "anio_compra": 2022,
+      "cantidad": 80,
+      "marca": "Crisa",
+      "nombre": "Copa Martini",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_vino_blanco": {
+      "anio_compra": 2022,
+      "cantidad": 91,
+      "marca": "Crisa",
+      "nombre": "Copa Vino Blanco",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "copa_vino_tinto": {
+      "anio_compra": 2022,
+      "cantidad": 90,
+      "marca": "Crisa",
+      "nombre": "Copa Vino Tinto",
+      "precio_ajustado": 102.36,
+      "precio_unitario": 91,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cpsula_sifn": {
+      "anio_compra": 2022,
+      "cantidad": 80,
+      "marca": "Mosa",
+      "nombre": "Cápsula sifón",
+      "precio_ajustado": 37.12,
+      "precio_unitario": 33,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cremera_pc4": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Libbey",
+      "nombre": "Cremera PC-4",
+      "precio_ajustado": 41.62,
+      "precio_unitario": 37,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cubremantel": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cubremantel",
+      "precio_ajustado": 240.72,
+      "precio_unitario": 214,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchara_bailarina": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cuchara bailarina",
+      "precio_ajustado": 55.12,
+      "precio_unitario": 49,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchara_cafetera_mod_pars": {
+      "anio_compra": 2022,
+      "cantidad": 90,
+      "marca": "Ánfora",
+      "nombre": "Cuchara cafetera Mod. París",
+      "precio_ajustado": 48.37,
+      "precio_unitario": 43,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchara_de_madera": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cuchara de madera",
+      "precio_ajustado": 91.11,
+      "precio_unitario": 81,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchara_de_servicio": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Ánfora",
+      "nombre": "Cuchara de servicio",
+      "precio_ajustado": 91.11,
+      "precio_unitario": 81,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchara_postre_mod_pars": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Ánfora",
+      "nombre": "Cuchara postre Mod. París",
+      "precio_ajustado": 48.37,
+      "precio_unitario": 43,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchara_sopera_mod_pars": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Ánfora",
+      "nombre": "Cuchara sopera Mod. París",
+      "precio_ajustado": 55.12,
+      "precio_unitario": 49,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cucharn": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cucharón",
+      "precio_ajustado": 60.74,
+      "precio_unitario": 54,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchillo_chef_30_cm": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cuchillo Chef 30 cm.",
+      "precio_ajustado": 554.56,
+      "precio_unitario": 493,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchillo_mondador": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cuchillo mondador",
+      "precio_ajustado": 157.48,
+      "precio_unitario": 140,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchillo_sierra": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Cuchillo sierra",
+      "precio_ajustado": 193.48,
+      "precio_unitario": 172,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "cuchillo_trinche_mod_pars": {
+      "anio_compra": 2022,
+      "cantidad": 90,
+      "marca": "n/a",
+      "nombre": "Cuchillo Trinche Mod. París",
+      "precio_ajustado": 60.74,
+      "precio_unitario": 54,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "duya": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Duya",
+      "precio_ajustado": 48.37,
+      "precio_unitario": 43,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "empaque_olla_express": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Presto",
+      "nombre": "Empaque olla express",
+      "precio_ajustado": 240.72,
+      "precio_unitario": 214,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "espiguero_rack": {
+      "anio_compra": 2022,
+      "cantidad": 90,
+      "marca": "n/a",
+      "nombre": "Espiguero rack",
+      "precio_ajustado": 6202.5,
+      "precio_unitario": 5514,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "esptula_pastelera_escalonada_10": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "n/a",
+      "nombre": "Espátula pastelera escalonada 10\"",
+      "precio_ajustado": 101.42,
+      "precio_unitario": 90.16,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "extractor_de_jugo": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Jugomex",
+      "nombre": "Extractor de jugo",
+      "precio_ajustado": 2888.65,
+      "precio_unitario": 2568,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "fantasmas": {
+      "anio_compra": 2022,
+      "cantidad": 49,
+      "marca": "n/a",
+      "nombre": "Fantasmas",
+      "precio_ajustado": 199.1,
+      "precio_unitario": 177,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "flaneras": {
+      "anio_compra": 2022,
+      "cantidad": 50,
+      "marca": "Pirex",
+      "nombre": "Flaneras",
+      "precio_ajustado": 48.37,
+      "precio_unitario": 43,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "florero_cnico_chico": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Florero cónico chico",
+      "precio_ajustado": 319.46,
+      "precio_unitario": 284,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "florero_cnico_grande": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Florero cónico grande",
+      "precio_ajustado": 542.18,
+      "precio_unitario": 482,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "fundafantasma": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Funda/fantasma",
+      "precio_ajustado": 132.73,
+      "precio_unitario": 118,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_11_acero_inox": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Vollrath",
+      "nombre": "Inserto GN 1/1 acero inox.",
+      "precio_ajustado": 867.27,
+      "precio_unitario": 771,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_12_acero_inox": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Vollrath",
+      "nombre": "Inserto GN 1/2 acero inox.",
+      "precio_ajustado": 764.91,
+      "precio_unitario": 680,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_12_silicn": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Araven / Cambro",
+      "nombre": "Inserto GN 1/2 silicón",
+      "precio_ajustado": 1083.24,
+      "precio_unitario": 963,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_13_acero_inox": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Vollrath",
+      "nombre": "Inserto GN 1/3 acero inox.",
+      "precio_ajustado": 542.18,
+      "precio_unitario": 482,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_13_policarbonato": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Araven / Cambro",
+      "nombre": "Inserto GN 1/3 policarbonato",
+      "precio_ajustado": 457.82,
+      "precio_unitario": 407,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_14_policarbonato": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Araven / Cambro",
+      "nombre": "Inserto GN 1/4 policarbonato",
+      "precio_ajustado": 457.82,
+      "precio_unitario": 407,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "inserto_gn_19_policarbonato": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Araven / Cambro",
+      "nombre": "Inserto GN 1/9 policarbonato",
+      "precio_ajustado": 301.46,
+      "precio_unitario": 268,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "jarra_acapulco": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Jarra Acapulco",
+      "precio_ajustado": 445.45,
+      "precio_unitario": 396,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "jarra_cafetera": {
+      "anio_compra": 2022,
+      "cantidad": 15,
+      "marca": "Crisa",
+      "nombre": "Jarra cafetera",
+      "precio_ajustado": 391.45,
+      "precio_unitario": 348,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "jarra_mxico": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Jarra México",
+      "precio_ajustado": 181.1,
+      "precio_unitario": 161,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "jarrito_de_barro": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Jarrito de barro",
+      "precio_ajustado": 55.12,
+      "precio_unitario": 49,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "jigger": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Jigger",
+      "precio_ajustado": 42.74,
+      "precio_unitario": 38,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "juego_de_aspas_licuadora": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Oster",
+      "nombre": "Juego de aspas licuadora",
+      "precio_ajustado": 145.11,
+      "precio_unitario": 129,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "juego_de_cuchareo": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Ánfora",
+      "nombre": "Juego de cuchareo",
+      "precio_ajustado": 145.11,
+      "precio_unitario": 129,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "licuadora_completa": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Oster",
+      "nombre": "Licuadora completa",
+      "precio_ajustado": 1323.96,
+      "precio_unitario": 1177,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "licuadora_motor": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Oster",
+      "nombre": "Licuadora motor",
+      "precio_ajustado": 722.16,
+      "precio_unitario": 642,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "licuadora_sumergible": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Tefal",
+      "nombre": "Licuadora sumergible",
+      "precio_ajustado": 722.16,
+      "precio_unitario": 642,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "licuadora_sumergible_mq9199xl_multiquick": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Braun",
+      "nombre": "Licuadora sumergible MQ9199XL MultiQuick",
+      "precio_ajustado": 2577.94,
+      "precio_unitario": 2291.78,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "listnmoo": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Listón/moño",
+      "precio_ajustado": 42.74,
+      "precio_unitario": 38,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mamila": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mamila",
+      "precio_ajustado": 163.11,
+      "precio_unitario": 145,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "manga_pastelera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Manga pastelera",
+      "precio_ajustado": 181.1,
+      "precio_unitario": 161,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mano_de_metate": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mano de metate",
+      "precio_ajustado": 506.19,
+      "precio_unitario": 450,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mantel_cuadrado_blanco": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mantel cuadrado blanco",
+      "precio_ajustado": 337.46,
+      "precio_unitario": 300,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mantel_cubre_azulrojo": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mantel cubre azul/rojo",
+      "precio_ajustado": 240.72,
+      "precio_unitario": 214,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mantel_para_tabln": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mantel para tablón",
+      "precio_ajustado": 301.46,
+      "precio_unitario": 268,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mantel_redondo": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mantel redondo",
+      "precio_ajustado": 337.46,
+      "precio_unitario": 300,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mantequillera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Mantequillera",
+      "precio_ajustado": 120.36,
+      "precio_unitario": 107,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mesa_cuadrada_1x1m": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mesa cuadrada 1x1m",
+      "precio_ajustado": 1444.33,
+      "precio_unitario": 1284,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "mesa_redonda": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "n/a",
+      "nombre": "Mesa redonda",
+      "precio_ajustado": 1444.33,
+      "precio_unitario": 1284,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "miserable_chica_10": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Winco",
+      "nombre": "Miserable chica 10\"",
+      "precio_ajustado": 130.48,
+      "precio_unitario": 116,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "miserable_grande_16": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Winco",
+      "nombre": "Miserable grande 16\"",
+      "precio_ajustado": 191.23,
+      "precio_unitario": 170,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "molde_para_pastel": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Molde para pastel",
+      "precio_ajustado": 361.08,
+      "precio_unitario": 321,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "molde_para_tarta": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Molde para tarta",
+      "precio_ajustado": 480.32,
+      "precio_unitario": 427,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "nombre_del_nuevo_articulo": {
+      "anio_compra": 2025,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Nombre del Nuevo Artículo",
+      "precio_ajustado": 0,
+      "precio_unitario": 0,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "olla_alta_8_litros": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Vasconia",
+      "nombre": "Olla alta 8 litros",
+      "precio_ajustado": 542.18,
+      "precio_unitario": 482,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "pala_de_madera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Pala de madera",
+      "precio_ajustado": 91.11,
+      "precio_unitario": 81,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "pala_para_hielo": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Winco",
+      "nombre": "Pala para hielo",
+      "precio_ajustado": 150.73,
+      "precio_unitario": 134,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "pala_pastelera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Pala pastelera",
+      "precio_ajustado": 175.48,
+      "precio_unitario": 156,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "panera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Panera",
+      "precio_ajustado": 73.12,
+      "precio_unitario": 65,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "pelador_rastrillo_victorinox": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Victorinox",
+      "nombre": "Pelador rastrillo victorinox",
+      "precio_ajustado": 120.36,
+      "precio_unitario": 107,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "pinzas_para_pan": {
+      "anio_compra": 2022,
+      "cantidad": 19,
+      "marca": "",
+      "nombre": "Pinzas para pan",
+      "precio_ajustado": 60.74,
+      "precio_unitario": 54,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_bananero": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato bananero",
+      "precio_ajustado": 120.36,
+      "precio_unitario": 107,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_base_sl13": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato base SL-13",
+      "precio_ajustado": 361.08,
+      "precio_unitario": 321,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_cafetero_15_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato cafetero 15 cm.",
+      "precio_ajustado": 78.74,
+      "precio_unitario": 70,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_compotero": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato compotero",
+      "precio_ajustado": 37.12,
+      "precio_unitario": 33,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_compotero_chico_12_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato compotero chico (12 cm.)",
+      "precio_ajustado": 27,
+      "precio_unitario": 24,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_compotero_grande_14_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato compotero grande (14 cm.)",
+      "precio_ajustado": 48.37,
+      "precio_unitario": 43,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_corona": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato Corona",
+      "precio_ajustado": 109.11,
+      "precio_unitario": 97,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_ensalada": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato ensalada",
+      "precio_ajustado": 78.74,
+      "precio_unitario": 70,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_imperial_30_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato imperial 30 cm.",
+      "precio_ajustado": 229.47,
+      "precio_unitario": 204,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_pan": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato pan",
+      "precio_ajustado": 78.74,
+      "precio_unitario": 70,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_postre": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato postre",
+      "precio_ajustado": 78.74,
+      "precio_unitario": 70,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl11": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato SL-11",
+      "precio_ajustado": 109.11,
+      "precio_unitario": 97,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl13": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato SL-13",
+      "precio_ajustado": 337.46,
+      "precio_unitario": 300,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl21": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato SL-21",
+      "precio_ajustado": 337.46,
+      "precio_unitario": 300,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl25": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato SL-25",
+      "precio_ajustado": 385.83,
+      "precio_unitario": 343,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl33": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato SL-33",
+      "precio_ajustado": 380.2,
+      "precio_unitario": 338,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl40": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato SL-40",
+      "precio_ajustado": 280.09,
+      "precio_unitario": 249,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sl5": {
+      "anio_compra": 2022,
+      "cantidad": 0,
+      "marca": "Libbey",
+      "nombre": "Plato SL-5",
+      "precio_ajustado": 55.12,
+      "precio_unitario": 49,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_sopero": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato sopero",
+      "precio_ajustado": 109.11,
+      "precio_unitario": 97,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_trinche_23_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato trinche 23 cm.",
+      "precio_ajustado": 109.11,
+      "precio_unitario": 97,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_trinche_26_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato trinche 26 cm.",
+      "precio_ajustado": 132.73,
+      "precio_unitario": 118,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "plato_trinche_barro_26_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Plato trinche barro 26 cm.",
+      "precio_ajustado": 132.73,
+      "precio_unitario": 118,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "porta_sobres_de_azcar": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Porta sobres de azúcar",
+      "precio_ajustado": 157.48,
+      "precio_unitario": 140,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "procesador_de_alimentos_mq9199xl_multiquick": {
+      "anio_compra": 2022,
+      "cantidad": 2,
+      "marca": "Braun",
+      "nombre": "Procesador de alimentos MQ9199XL MultiQuick",
+      "precio_ajustado": 6113.64,
+      "precio_unitario": 5435,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "raspa_panadera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Winco",
+      "nombre": "Raspa panadería",
+      "precio_ajustado": 84.36,
+      "precio_unitario": 75,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "refractario_pirex_chico": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Pirex",
+      "nombre": "Refractario pirex Chico",
+      "precio_ajustado": 253.09,
+      "precio_unitario": 225,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "refractario_pirex_grande": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Pirex",
+      "nombre": "Refractario pirex Grande",
+      "precio_ajustado": 493.82,
+      "precio_unitario": 439,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "refractario_pirex_mediano": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Pirex",
+      "nombre": "Refractario pirex Mediano",
+      "precio_ajustado": 373.45,
+      "precio_unitario": 332,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "sacacorchos": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Sacacorchos",
+      "precio_ajustado": 55.12,
+      "precio_unitario": 49,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "salsera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Salsera",
+      "precio_ajustado": 118.11,
+      "precio_unitario": 105,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "sampler_cube_sl52": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Sampler cube SL-52",
+      "precio_ajustado": 46.12,
+      "precio_unitario": 41,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "sartn_con_tefln_36_cm": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Tefal",
+      "nombre": "Sartén con teflón 36 cm",
+      "precio_ajustado": 578.18,
+      "precio_unitario": 514,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "servilleta_de_tela": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Servilleta de tela",
+      "precio_ajustado": 60.74,
+      "precio_unitario": 54,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "shaker": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Shaker",
+      "precio_ajustado": 253.09,
+      "precio_unitario": 225,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "silla_plegable": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Silla plegable",
+      "precio_ajustado": 132.73,
+      "precio_unitario": 118,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "sufflera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Sufflera",
+      "precio_ajustado": 139.48,
+      "precio_unitario": 124,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tabla": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Tabla",
+      "precio_ajustado": 361.08,
+      "precio_unitario": 321,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tabln": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Tablón",
+      "precio_ajustado": 1202.48,
+      "precio_unitario": 1069,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tapete_de_silicn_silpat": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Silpat",
+      "nombre": "Tapete de silicón Silpat",
+      "precio_ajustado": 1444.33,
+      "precio_unitario": 1284,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "taza_cafetera": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Taza cafetera",
+      "precio_ajustado": 59.62,
+      "precio_unitario": 53,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "taza_medidora": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "",
+      "nombre": "Taza medidora",
+      "precio_ajustado": 101.24,
+      "precio_unitario": 90,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "taza_medidora_del_procesador_de_alimentos": {
+      "anio_compra": 2022,
+      "cantidad": 100,
+      "marca": "Braun",
+      "nombre": "Taza medidora del Procesador de alimentos",
+      "precio_ajustado": 1124.86,
+      "precio_unitario": 1000,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tazn": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Libbey",
+      "nombre": "Tazón",
+      "precio_ajustado": 145.11,
+      "precio_unitario": 129,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tazn_de_barro": {
+      "anio_compra": 2022,
+      "cantidad": 39,
+      "marca": "",
+      "nombre": "Tazón de barro",
+      "precio_ajustado": 78.74,
+      "precio_unitario": 70,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tenedor_postre_mod_pars": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Ánfora",
+      "nombre": "Tenedor postre Mod. París",
+      "precio_ajustado": 48.37,
+      "precio_unitario": 43,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tenedor_trinche_mod_pars": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Ánfora",
+      "nombre": "Tenedor trinche Mod. París",
+      "precio_ajustado": 52.87,
+      "precio_unitario": 47,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "tung_tungt_sahur": {
+      "anio_compra": 2025,
+      "cantidad": 10,
+      "marca": "",
+      "nombre": "tung tungt sahur",
+      "precio_ajustado": 0,
+      "precio_unitario": 0,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vaso_chaiser": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Vaso chaiser",
+      "precio_ajustado": 57.37,
+      "precio_unitario": 51,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vaso_collins_10_oz": {
+      "anio_compra": 2022,
+      "cantidad": 200,
+      "marca": "Crisa",
+      "nombre": "Vaso collins 10 oz.",
+      "precio_ajustado": 66.37,
+      "precio_unitario": 59,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vaso_de_licuadora": {
+      "anio_compra": 2022,
+      "cantidad": 1,
+      "marca": "Crisa",
+      "nombre": "Vaso de licuadora",
+      "precio_ajustado": 240.72,
+      "precio_unitario": 214,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vaso_highball_12_oz": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Crisa",
+      "nombre": "Vaso highball 12 oz.",
+      "precio_ajustado": 55.12,
+      "precio_unitario": 49,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vaso_old_fashioned": {
+      "anio_compra": 2022,
+      "cantidad": 200,
+      "marca": "Crisa",
+      "nombre": "Vaso old fashioned",
+      "precio_ajustado": 66.37,
+      "precio_unitario": 59,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vaso_pilsner": {
+      "anio_compra": 2022,
+      "cantidad": 200,
+      "marca": "Crisa",
+      "nombre": "Vaso Pilsner",
+      "precio_ajustado": 84.36,
+      "precio_unitario": 75,
+      "proveedor": "",
+      "tipo": ""
+    },
+    "vlvula_olla_express": {
+      "anio_compra": 2022,
+      "cantidad": 20,
+      "marca": "Presto",
+      "nombre": "Válvula olla express",
+      "precio_ajustado": 112.49,
+      "precio_unitario": 100,
+      "proveedor": "",
+      "tipo": ""
+    }
+  },
+  "pago": {
+    "pago1": {
+      "fecha_pago": "2024-01-15",
+      "matricula_alumno": 2024001,
+      "metodo_pago": "Efectivo",
+      "monto": 2500,
+      "numero_adeudo": 1
+    }
+  },
+  "prestamos": {
+    "-ORNUFIs_-7vZmJQKUsA": {
+      "estado": "devuelto",
+      "fecha_limite": "2025-05-29",
+      "fecha_prestamo": "2025-05-28",
+      "fecha_registro": "2025-05-28T20:02:22.161Z",
+      "id_material": "material1",
+      "id_prestamo": "-ORNUFIs_-7vZmJQKUsA",
+      "matricula_alumno": 243524,
+      "nombre_alumno": "Daniel Meza",
+      "nombre_material": "Sartén Antiadherente",
+      "precio_unitario": 514
+    },
+    "-ORRm-23xatWppUKfN3b": {
+      "estado": "devuelto",
+      "fecha_limite": "2025-05-30",
+      "fecha_prestamo": "2025-05-29",
+      "fecha_registro": "2025-05-29T16:02:46.808Z",
+      "id_material": "material1",
+      "id_prestamo": "-ORRm-23xatWppUKfN3b",
+      "matricula_alumno": 243876,
+      "nombre_alumno": "Cristian Aparicio",
+      "nombre_material": "Sartén Antiadherente",
+      "precio_unitario": 514
+    },
+    "-ORRo3tmwjOi1Posf2bU": {
+      "estado": "devuelto",
+      "fecha_limite": "2025-05-30",
+      "fecha_prestamo": "2025-05-29",
+      "fecha_registro": "2025-05-29T16:11:50.984Z",
+      "id_material": "material1",
+      "id_prestamo": "-ORRo3tmwjOi1Posf2bU",
+      "matricula_alumno": 243576,
+      "nombre_alumno": "Juan flores",
+      "nombre_material": "Sartén Antiadherente",
+      "precio_unitario": 514
+    },
+    "-OS3Q6tPYULbypvv2h_7": {
+      "estado": "devuelto",
+      "fecha_limite": "2025-06-06",
+      "fecha_registro": "2025-06-06T08:47:29.502Z",
+      "id_material": "material1",
+      "materia": "cocina1",
+      "matricula_alumno": "244650",
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL",
+      "nombre_material": "Sartén Antiadherente",
+      "precio_unitario": 514
+    },
+    "-OSCC4F8wHDGFNt6C9JZ": {
+      "estado": "activo",
+      "fecha_limite": "2025-06-28",
+      "fecha_prestamo": "2025-06-08",
+      "id_material": "material1",
+      "id_prestamo": "-OSCC4F8wHDGFNt6C9JZ",
+      "materia": "cocina1",
+      "matricula_alumno": "244064",
+      "nombre_alumno": "giovanni cortez rios",
+      "nombre_material": "Sartén Antiadherente",
+      "precio_unitario": 514
+    },
+    "-OSL7Q33WL7Ps_LiA9VO": {
+      "estado": "perdido",
+      "fecha_limite": "2025-06-30",
+      "fecha_prestamo": "2025-06-09",
+      "id_material": "material1",
+      "id_prestamo": "-OSL7Q33WL7Ps_LiA9VO",
+      "materia": "cocina1",
+      "matricula_alumno": "244011",
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Sartén Antiadherente",
+      "precio_unitario": 514
+    },
+    "-OSPpaIBwAeY5yuZeyT4": {
+      "estado": "activo",
+      "fecha_limite": "2025-06-11",
+      "fecha_prestamo": "2025-06-10",
+      "id_material": "material2",
+      "id_prestamo": "-OSPpaIBwAeY5yuZeyT4",
+      "materia": "sddf",
+      "matricula_alumno": "244650",
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL undefined undefined",
+      "nombre_material": "Espatula",
+      "precio_unitario": 0
+    },
+    "-OSPpaIBwAeY5yuZeyT5": {
+      "estado": "activo",
+      "fecha_limite": "2025-06-11",
+      "fecha_prestamo": "2025-06-10",
+      "id_material": "material2",
+      "id_prestamo": "-OSPpaIBwAeY5yuZeyT5",
+      "materia": "sddf",
+      "matricula_alumno": "244650",
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL undefined undefined",
+      "nombre_material": "Espatula",
+      "precio_unitario": 0
+    },
+    "-OSVV1mvVdk3BTugao5G": {
+      "estado": "perdido",
+      "fecha_limite": "2025-06-12",
+      "fecha_prestamo": "2025-06-11",
+      "id_material": "Coladera",
+      "id_prestamo": "-OSVV1mvVdk3BTugao5G",
+      "materia": "cocina12",
+      "matricula_alumno": "244011",
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Coladera",
+      "precio_unitario": 166
+    },
+    "-OSVV1mvVdk3BTugao5H": {
+      "estado": "activo",
+      "fecha_limite": "2025-06-12",
+      "fecha_prestamo": "2025-06-11",
+      "id_material": "Coladera",
+      "id_prestamo": "-OSVV1mvVdk3BTugao5H",
+      "materia": "cocina12",
+      "matricula_alumno": "244011",
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Coladera",
+      "precio_unitario": 166
+    },
+    "-OSVVXrKpcVWuAzN5R7Q": {
+      "estado": "perdido",
+      "fecha_limite": "2025-06-13",
+      "fecha_prestamo": "2025-06-11",
+      "id_material": "Cafetera",
+      "id_prestamo": "-OSVVXrKpcVWuAzN5R7Q",
+      "materia": "cocina12",
+      "matricula_alumno": "244011",
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Cafetera",
+      "precio_unitario": 589
+    },
+    "-OSbMo_PqpvQg4Cli4v8": {
+      "asunto": "Prestamo",
+      "cantidad": 2,
+      "correo": "244650@ulsaneza.edu.mx",
+      "estado": "pendiente",
+      "fecha": "2025-06-13T03:39:47.463Z",
+      "id": "-OSbMo_PqpvQg4Cli4v8",
+      "material": {
+        "id": "cazo_cnico",
+        "nombre": "Cazo cónico"
+      },
+      "matricula": "244650",
+      "mensaje": "Estimado/a alumno/a,\n\nSe le ha prestado el material: \"Cazo cónico\" por 2 objeto(s).\n\nSi tiene alguna duda, no dude en contactarnos.\n\nAtentamente,\nAdministración UL Saneza",
+      "tipo": "prestamo"
+    },
+    "-OSdekZZN09LOqLpck0p": {
+      "estado": "perdido",
+      "fecha_limite": "2025-06-14",
+      "fecha_prestamo": "2025-06-13",
+      "id_material": "Azucarera",
+      "id_prestamo": "-OSdekZZN09LOqLpck0p",
+      "materia": "Cocina IV",
+      "matricula_alumno": "244512",
+      "nombre_alumno": "KEVIN SANDOVAL NIEVES Sandoval Nieves",
+      "nombre_material": "Azucarera",
+      "precio_unitario": 97
+    },
+    "-OSeXxvl9GlsE8rmjB-u": {
+      "estado": "activo",
+      "fecha_limite": "2025-06-16",
+      "fecha_prestamo": "2025-06-13",
+      "id_material": "Azucarera",
+      "id_prestamo": "-OSeXxvl9GlsE8rmjB-u",
+      "materia": "COCINA EPICA CON RATATOUILLE",
+      "matricula_alumno": "244011",
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Azucarera",
+      "precio_unitario": 97
+    },
+    "-OSeXxvm6JFtDmUvdnPS": {
+      "estado": "activo",
+      "fecha_limite": "2025-06-16",
+      "fecha_prestamo": "2025-06-13",
+      "id_material": "Azucarera",
+      "id_prestamo": "-OSeXxvm6JFtDmUvdnPS",
+      "materia": "COCINA EPICA CON RATATOUILLE",
+      "matricula_alumno": "244011",
+      "nombre_alumno": "said diaz loya",
+      "nombre_material": "Azucarera",
+      "precio_unitario": 97
+    },
+    "-OaNazVEXdiHB6Ax5Ghr": {
+      "estado": "perdido",
+      "fecha_limite": "2025-09-30",
+      "fecha_prestamo": "2025-09-30",
+      "id_material": "Bambalina",
+      "id_prestamo": "-OaNazVEXdiHB6Ax5Ghr",
+      "materia": "nn",
+      "matricula_alumno": "244650",
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL undefined undefined",
+      "nombre_material": "Bambalina",
+      "precio_unitario": 675
+    },
+    "-OaNazVFzpl6HQO2AgpS": {
+      "estado": "devuelto",
+      "fecha_limite": "2025-09-30",
+      "fecha_prestamo": "2025-09-30",
+      "id_material": "Bambalina",
+      "id_prestamo": "-OaNazVFzpl6HQO2AgpS",
+      "materia": "nn",
+      "matricula_alumno": "244650",
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL undefined undefined",
+      "nombre_material": "Bambalina",
+      "precio_unitario": 675
+    },
+    "-ObBg-eqOR90_4A6c0E8": {
+      "estado": "pendiente",
+      "fecha_limite": "2025-10-09",
+      "fecha_prestamo": "2025-10-10",
+      "id_material": "mat003",
+      "id_prestamo": "-ObBg-eqOR90_4A6c0E8",
+      "materia": "tu puta madre",
+      "matricula_alumno": "244750",
+      "nombre_alumno": "Nuevo Usuario",
+      "nombre_material": "Cuchillo para Pan",
+      "precio_unitario": 0
+    },
+    "-ObDuHav1SNPyTrxwhlW": {
+      "estado": "pendiente",
+      "fecha_limite": "2025-10-10",
+      "fecha_prestamo": "2025-10-10",
+      "id_material": "MAT001",
+      "id_prestamo": "-ObDuHav1SNPyTrxwhlW",
+      "materia": "COCINA EPICA CON RATATOUILLE",
+      "matricula_alumno": "244512",
+      "nombre_alumno": "KEVIN SANDOVAL NIEVES",
+      "nombre_material": "Cuchillo de utilidad",
+      "precio_unitario": 0
+    },
+    "-ObJ3i6CFZlvl5PiBCeD": {
+      "estado": "pendiente",
+      "fecha_limite": "2025-10-24",
+      "fecha_prestamo": "2025-10-11",
+      "id_material": "BAM001",
+      "id_prestamo": "-ObJ3i6CFZlvl5PiBCeD",
+      "materia": "cocina1",
+      "matricula_alumno": "244650",
+      "nombre_alumno": "DANIEL ALEJANDRO PEREZ ESQUIVEL",
+      "nombre_material": "Bambalina (Stage Curtain/Backdrop)",
+      "precio_unitario": 0
+    }
+  }
+}
