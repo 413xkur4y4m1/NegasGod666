@@ -7,10 +7,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
-import { ChatMessage as ChatMessageType, Loan, Debt } from '@/lib/types';
+// CORRECTED: Import the schema from the single source of truth
+import { ChatMessage as ChatMessageType, Loan, Debt, ChatbotOutputSchema } from '@/lib/types';
 import { ChatMessage } from './ChatMessage';
 import { nanoid } from 'nanoid';
-import { chatbotAssistedLoanRequest, ChatbotOutputSchema } from '@/ai/flows/chatbot-assisted-loan-requests';
 import { createLoan } from '@/lib/actions';
 import { z } from 'zod';
 
@@ -36,18 +36,31 @@ export function ChatWindow() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !user) return;
 
     const newUserMessage: ChatMessageType = { id: nanoid(), role: 'user', content: input };
     setMessages((prev) => [...prev, newUserMessage]);
+    const userQuery = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      const assistantResponse: z.infer<typeof ChatbotOutputSchema> = await chatbotAssistedLoanRequest({ 
-        userQuery: input,
-        studentMatricula: user!.matricula,
+      const response = await fetch('/api/student/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userQuery, studentMatricula: user.matricula }),
       });
+
+      if (!response.ok) {
+          let errorDetails = `El servidor respondió con el estado ${response.status}`;
+          try {
+              const errorData = await response.json();
+              errorDetails = errorData.message || errorDetails;
+          } catch (e) { /* Ignore parsing error */ }
+          throw new Error(errorDetails);
+      }
+
+      const assistantResponse: z.infer<typeof ChatbotOutputSchema> = await response.json();
 
       const newAssistantMessage: ChatMessageType = {
         id: nanoid(),
@@ -59,8 +72,8 @@ export function ChatWindow() {
       };
       setMessages((prev) => [...prev, newAssistantMessage]);
 
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('[ChatWindow] Error general:', error);
       const errorAssistantMessage: ChatMessageType = {
         id: nanoid(),
         role: 'assistant',
@@ -70,7 +83,7 @@ export function ChatWindow() {
        toast({
         variant: 'destructive',
         title: 'Error de IA',
-        description: 'No se pudo comunicar con el asistente.',
+        description: error.message || 'No se pudo comunicar con el asistente.',
       });
     } finally {
       setIsLoading(false);

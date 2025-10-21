@@ -1,48 +1,53 @@
-'use server';
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { db } from '@/lib/firebase';
 import { ref, get } from 'firebase/database';
 import { logger } from '@/lib/logger';
-import { Loan, Debt, Material, User, LoanSchema, DebtSchema, MaterialSchema, UserSchema } from '@/lib/types';
+// CORRECTED: Import all data structures, including the chatbot-specific ones, from the single source of truth.
+import { 
+    Loan, 
+    Debt, 
+    Material, 
+    User, 
+    LoanSchema, 
+    DebtSchema, 
+    MaterialSchema, 
+    UserSchema,
+    ChatbotOutputSchema, // Imported from types.ts
+    EnrichedMaterialCardSchema // Imported from types.ts
+} from '@/lib/types';
 
-// --- ESQUEMAS ZOD ---
+// --- INPUT SCHEMA ---
 const ChatbotInputSchema = z.object({
   userQuery: z.string().describe('La pregunta o solicitud del alumno.'),
   studentMatricula: z.string().describe('La matrícula del alumno que realiza la consulta.'),
 });
 
+// --- AI-SPECIFIC SCHEMAS (Internal to this flow) ---
+
+// Schema for the raw material options from the AI model itself.
 const AiMaterialCardSchema = z.object({
   id: z.string().describe('El ID único del material.'),
   name: z.string().describe('El nombre del material.'),
 });
 
-const EnrichedMaterialCardSchema = AiMaterialCardSchema.extend({
-  imageUrl: z.string().optional().describe('La URL de la imagen del material.'),
-});
-
-export const ChatbotOutputSchema = z.object({
+// Schema for the raw, direct output from the AI model.
+const AiOutputSchema = z.object({
   intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
   responseText: z.string(),
-  materialOptions: z.array(EnrichedMaterialCardSchema).optional(),
-  loansHistory: z.array(LoanSchema).optional(),
-  debtsHistory: z.array(DebtSchema).optional(),
+  materialOptions: z.array(AiMaterialCardSchema).optional(),
 });
 
-// --- PROMPT DE LA IA (sin cambios) ---
+// --- AI PROMPT ---
 const studentChatRouterPrompt = ai.definePrompt({
   name: 'studentChatRouterPrompt',
-  input: { schema: z.object({ /* ... */ }) },
-  output: { schema: z.object({ 
-      intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
-      responseText: z.string(),
-      materialOptions: z.array(AiMaterialCardSchema).optional(),
-  })},
-  prompt: `Eres un asistente amigable...`
+  input: { schema: z.object({ /* ... */ }) }, // Input is passed dynamically
+  output: { schema: AiOutputSchema },
+  prompt: `Eres un asistente amigable...` // The full prompt is managed by Genkit Cloud
 });
 
-// --- FUNCIÓN PRINCIPAL DEL FLUJO ---
+// --- MAIN FLOW FUNCTION ---
 export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotInputSchema>): Promise<z.infer<typeof ChatbotOutputSchema>> {
   try {
     const [materialsSnap, loansSnap, debtsSnap, usersSnap] = await Promise.all([
@@ -52,7 +57,7 @@ export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotIn
       get(ref(db, 'alumno'))
     ]);
 
-    // --- PARSE AND TRANSFORM DATA ---
+    // --- PARSE AND TRANSFORM DATABASE DATA ---
     const allMaterials = Object.entries(materialsSnap.val() || {})
         .map(([id, m]) => MaterialSchema.safeParse({ id, ...(m as object) }))
         .filter(p => p.success)
@@ -74,35 +79,42 @@ export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotIn
     const currentUser = allUsers.find(u => u.matricula === input.studentMatricula);
     const studentName = currentUser?.nombre || 'alumno';
 
+    // --- CALL THE AI MODEL ---
     const { output: aiResponse } = await studentChatRouterPrompt({
         userQuery: input.userQuery,
         studentName,
         availableMaterials: JSON.stringify(allMaterials.map(m => ({ id: m.id, name: m.nombre }))),
-        studentLoans: JSON.stringify(studentLoans.map(l => ({ name: l.nombreMaterial, state: l.status }))), // CORRECTED: from l.estado to l.status
+        studentLoans: JSON.stringify(studentLoans.map(l => ({ name: l.nombreMaterial, state: l.status }))),
         studentDebts: JSON.stringify(studentDebts.map(d => ({ name: d.nombreMaterial, amount: d.monto }))),
     });
 
-    if (!aiResponse) throw new Error("La IA no pudo procesar la solicitud.");
+    // --- VALIDATE AND PROCESS AI RESPONSE ---
+    const validationResult = AiOutputSchema.safeParse(aiResponse);
 
+    if (!validationResult.success) {
+      const validationError = new Error("La respuesta de la IA no tiene el formato esperado.");
+      (validationError as any).invalidResponse = aiResponse;
+      (validationError as any).zodIssues = validationResult.error.issues;
+      throw validationError;
+    }
+
+    const validatedAiResponse = validationResult.data;
+
+    // --- CONSTRUCT THE FINAL, STRICTLY-TYPED RESPONSE ---
     const finalResponse: z.infer<typeof ChatbotOutputSchema> = {
-      intent: aiResponse.intent,
-      responseText: aiResponse.responseText,
+      intent: validatedAiResponse.intent,
+      responseText: validatedAiResponse.responseText,
     };
 
-    if (aiResponse.intent === 'materialSearch' && aiResponse.materialOptions) {
-      finalResponse.materialOptions = aiResponse.materialOptions
+    if (validatedAiResponse.intent === 'materialSearch' && validatedAiResponse.materialOptions) {
+      finalResponse.materialOptions = validatedAiResponse.materialOptions
         .map(option => {
           const realMaterial = allMaterials.find(m => m.id === option.id);
-          if (!realMaterial) return null;
-
-          const enrichedOption: z.infer<typeof EnrichedMaterialCardSchema> = {
-            id: option.id,
-            name: option.name,
-          };
-          return enrichedOption;
+          if (!realMaterial) return null; // Filter out options for materials that no longer exist
+          return { id: option.id, name: option.name }; // Return the enriched object
         })
         .filter(Boolean as any);
-    } else if (aiResponse.intent === 'historyInquiry') {
+    } else if (validatedAiResponse.intent === 'historyInquiry') {
       finalResponse.loansHistory = studentLoans;
       finalResponse.debtsHistory = studentDebts;
     }
@@ -112,10 +124,13 @@ export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotIn
     return finalResponse;
 
   } catch (error) {
-    logger.error('student', 'chatbot-error', { error: error instanceof Error ? error.message : error });
+    console.error("\n--- ERROR EN CHATBOT DE ESTUDIANTE ---", error);
+    logger.error('student', 'chatbot-processing-failed', { message: error instanceof Error ? error.message : String(error) });
+
+    // Return a user-friendly error response that conforms to the output schema
     return {
         intent: 'clarification',
-        responseText: 'Lo siento, tuve un problema al procesar tu solicitud. ¿Podrías intentar de nuevo?'
+        responseText: 'Lo siento, un error inesperado me impidió procesar tu solicitud. Por favor, intenta de nuevo más tarde.'
     };
   }
 }

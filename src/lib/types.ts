@@ -160,7 +160,28 @@ export const DebtSchema = RawDebtSchema.transform(data => {
 export type Debt = z.infer<typeof DebtSchema>;
 
 
-// --- CHAT INTERFACE ---
+// --- CHATBOT & CHAT INTERFACES ---
+
+// Schema for material cards returned by the AI
+const AiMaterialCardSchema = z.object({
+  id: z.string().describe('El ID único del material.'),
+  name: z.string().describe('El nombre del material.'),
+});
+
+// Enriched schema for use in the frontend, adding optional image URL
+export const EnrichedMaterialCardSchema = AiMaterialCardSchema.extend({
+  imageUrl: z.string().optional().describe('La URL de la imagen del material.'),
+});
+
+// Final, strict output schema for the student chatbot flow
+export const ChatbotOutputSchema = z.object({
+  intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
+  responseText: z.string(),
+  materialOptions: z.array(EnrichedMaterialCardSchema).optional(),
+  loansHistory: z.array(LoanSchema).optional(),
+  debtsHistory: z.array(DebtSchema).optional(),
+});
+
 // This does not need a raw schema as it's not stored directly in the DB.
 export interface ChatMessage {
   id: string;

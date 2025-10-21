@@ -10,7 +10,6 @@ import { Send, Loader2 } from 'lucide-react';
 import { ChatMessage as ChatMessageType } from '@/lib/types';
 import { AdminChatMessage } from './AdminChatMessage';
 import { nanoid } from 'nanoid';
-import { mainRouterAction } from '@/app/actions/mainRouterAction';
 
 export function AdminChatWindow() {
   const { user } = useAuth();
@@ -19,14 +18,7 @@ export function AdminChatWindow() {
     {
       id: nanoid(),
       role: 'assistant',
-      // FIX: Mensaje de bienvenida contextualizado para el laboratorio de gastronomía
-      content: `Hola, ${user?.nombre?.split(' ')[0] || 'Admin'}. Soy tu Asistente de Laboratorio. Estoy para ayudarte a gestionar el inventario y los préstamos.
-      
-Puedes pedirme cosas como:
-- "Agrega 10 sartenes de teflón marca T-fal"
-- "Busca los préstamos del alumno con matrícula 244064"
-- "Envíale un recordatorio a Said Diaz"
-- "Notifica a todos los alumnos con adeudos"`,
+      content: `Hola, ${user?.nombre?.split(' ')[0] || 'Admin'}. Soy tu Asistente de Laboratorio. Estoy para ayudarte a gestionar el inventario y los préstamos.\n\nPuedes pedirme cosas como:\n- "Agrega 10 sartenes de teflón marca T-fal"\n- "Busca los préstamos del alumno con matrícula 244064"\n- "Envíale un recordatorio a Said Diaz"\n- "Notifica a todos los alumnos con adeudos"`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -50,21 +42,39 @@ Puedes pedirme cosas como:
     };
 
     setMessages((prev) => [...prev, newUserMessage]);
+    const userQuery = input;
     setInput('');
     setIsLoading(true);
 
     let assistantResponseContent = '';
 
     try {
-      console.log(`[AdminChatWindow] Enviando solicitud al router principal: "${input}"`);
-      const result = await mainRouterAction({ input });
+      console.log(`[AdminChatWindow] Enviando solicitud a la API: "${userQuery}"`);
+      
+      // CORRECTED: Call the robust API route instead of the direct Server Action
+      const response = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userQuery }),
+      });
+
+      if (!response.ok) {
+        // Try to parse the error response, but have a fallback
+        let errorDetails = `El servidor respondió con el estado ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorDetails = errorData.message || errorDetails;
+        } catch (e) { /* Ignore parsing error */ }
+        throw new Error(errorDetails);
+      }
+
+      const result = await response.json();
 
       assistantResponseContent = result.message;
       
       if (!result.success) {
          toast({ variant: 'destructive', title: 'Error al Procesar', description: result.message });
       }
-      // No mostraremos un toast de éxito aquí para no ser redundantes con la respuesta del chat.
 
     } catch (error: any) {
       console.error('[AdminChatWindow] Error general:', error);

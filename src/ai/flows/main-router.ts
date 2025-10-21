@@ -8,7 +8,7 @@ import { loanReminderNotificationFlow } from '@/ai/flows/student-debt-notificati
 import { debtNotificationFlow } from '@/ai/flows/debt-notification';
 import { manageMaterial } from '@/ai/flows/admin-chatbot-material-management';
 import { logger } from '@/lib/logger';
-import { UserSchema, LoanSchema, MaterialSchema, User } from '@/lib/types'; // Import all necessary schemas
+import { UserSchema, LoanSchema, MaterialSchema, User } from '@/lib/types';
 
 const IntentSchema = z.object({
   intent: z.enum([
@@ -52,94 +52,103 @@ export const mainRouterFlow = ai.defineFlow(
     }),
   },
   async ({ userQuery }) => {
-    const { output } = await intentDetector({ userQuery });
-    if (!output) {
-      return { success: false, message: 'Lo siento, no pude determinar la intención de tu solicitud.' };
-    }
-    const { intent, userName } = output;
-    logger.chatbot('admin', 'intent-detected', { intent, userName });
-
-    switch (intent) {
-      case 'SEND_LOAN_REMINDER': {
-        if (!userName) {
-          return { success: false, message: 'Por favor, dime el nombre del estudiante al que quieres enviarle un recordatorio.' };
-        }
-
-        const usersSnapshot = await get(ref(db, 'alumno'));
-        const rawUsers = usersSnapshot.val() || {};
-        
-        const allUsers = Object.values(rawUsers)
-            .map(u => UserSchema.safeParse(u))
-            .filter(p => p.success)
-            .map(p => (p as { success: true; data: User }).data);
-        
-        const foundUsers = allUsers.filter(user =>
-          user.nombre.toLowerCase().includes(userName.toLowerCase())
-        );
-
-        if (foundUsers.length === 0) {
-          return { success: false, message: `No encontré ningún usuario con el nombre "${userName}". Intenta con un nombre más completo.` };
-        }
-
-        if (foundUsers.length > 1) {
-          const userNames = foundUsers.map(u => u.nombre).join(', ');
-          return { success: false, message: `Encontré varios usuarios con ese nombre: ${userNames}. ¿A cuál te refieres?` };
-        }
-
-        const targetUser = foundUsers[0];
-        // The notification flow should also be audited to ensure it uses clean data, but for now this is a big step.
-        const { success: reminderSuccess, message: reminderMessage } = await loanReminderNotificationFlow({ userId: targetUser.matricula }); // Use matricula as the reliable ID
-        return { success: reminderSuccess, message: `Se ha iniciado el proceso de recordatorio para ${targetUser.nombre}. Resultado: ${reminderMessage}` };
+    try {
+      const { output } = await intentDetector({ userQuery });
+      
+      // ++ VALIDACIÓN ESTRICTA DE LA RESPUESTA DE LA IA ++
+      const validationResult = IntentSchema.safeParse(output);
+      if (!validationResult.success) {
+        const validationError = new Error("La respuesta de la IA para detectar la intención no tiene el formato esperado.");
+        (validationError as any).invalidResponse = output; 
+        (validationError as any).zodIssues = validationResult.error.issues;
+        throw validationError;
       }
 
-      case 'SEND_DEBT_NOTIFICATION': {
-        const { success: debtSuccess, message: debtMessage } = await debtNotificationFlow();
-        return { success: debtSuccess, message: debtMessage };
-      }
+      const { intent, userName } = validationResult.data; // Usamos la data validada
+      logger.chatbot('admin', 'intent-detected', { intent, userName });
 
-      case 'CREATE_MATERIAL':
-        return await createMaterialAction({ input: userQuery });
+      switch (intent) {
+        case 'SEND_LOAN_REMINDER': {
+          if (!userName) {
+            return { success: false, message: 'Por favor, dime el nombre del estudiante al que quieres enviarle un recordatorio.' };
+          }
 
-      case 'QUERY_DATA':
-        try {
-          const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
-            get(ref(db, 'prestamos')),
-            get(ref(db, 'alumno')),
-            get(ref(db, 'materiales')),
-          ]);
+          const usersSnapshot = await get(ref(db, 'alumno'));
+          const allUsers = Object.values(usersSnapshot.val() || {})
+              .map(u => UserSchema.safeParse(u))
+              .filter(p => p.success)
+              .map(p => (p as any).data);
+          
+          const foundUsers = allUsers.filter(user =>
+            user.nombre.toLowerCase().includes(userName.toLowerCase())
+          );
 
-          // --- PARSE AND TRANSFORM ALL RAW DATA ---
-          const parsedLoans = Object.values(loansSnapshot.val() || {})
-            .map(l => LoanSchema.safeParse(l))
-            .filter(p => p.success)
-            .map(p => (p as any).data);
+          if (foundUsers.length === 0) {
+            return { success: false, message: `No encontré ningún usuario con el nombre "${userName}". Intenta con un nombre más completo.` };
+          }
 
-          const parsedUsers = Object.values(usersSnapshot.val() || {})
-            .map(u => UserSchema.safeParse(u))
-            .filter(p => p.success)
-            .map(p => (p as any).data);
-            
-          const parsedMaterials = Object.entries(materialsSnapshot.val() || {})
-            .map(([id, m]) => MaterialSchema.safeParse({ id, ...(m as object) }))
-            .filter(p => p.success)
-            .map(p => (p as any).data);
+          if (foundUsers.length > 1) {
+            const userNames = foundUsers.map(u => u.nombre).join(', ');
+            return { success: false, message: `Encontré varios usuarios con ese nombre: ${userNames}. ¿A cuál te refieres?` };
+          }
 
-          const context = {
-            loans: JSON.stringify(parsedLoans),
-            users: JSON.stringify(parsedUsers),
-            materials: JSON.stringify(parsedMaterials),
-          };
-
-          const queryResult = await manageMaterial({ userQuery, context });
-          return { success: true, message: queryResult.response };
-        } catch (error) {
-          logger.error('admin', 'query-data-error', error);
-          return { success: false, message: 'Error al consultar los datos de la base de datos.' };
+          const targetUser = foundUsers[0];
+          const { success: reminderSuccess, message: reminderMessage } = await loanReminderNotificationFlow({ userId: targetUser.matricula });
+          return { success: reminderSuccess, message: `Se ha iniciado el proceso de recordatorio para ${targetUser.nombre}. Resultado: ${reminderMessage}` };
         }
 
-      case 'NONE':
-      default:
-        return { success: false, message: 'No he podido identificar una acción clara en tu solicitud. ¿Podrías reformularla?' };
+        case 'SEND_DEBT_NOTIFICATION': {
+          const { success: debtSuccess, message: debtMessage } = await debtNotificationFlow();
+          return { success: debtSuccess, message: debtMessage };
+        }
+
+        case 'CREATE_MATERIAL':
+          return await createMaterialAction({ input: userQuery });
+
+        case 'QUERY_DATA':
+          try {
+            const [loansSnapshot, usersSnapshot, materialsSnapshot] = await Promise.all([
+              get(ref(db, 'prestamos')),
+              get(ref(db, 'alumno')),
+              get(ref(db, 'materiales')),
+            ]);
+
+            const parsedLoans = Object.values(loansSnapshot.val() || {}).map(l => LoanSchema.safeParse(l)).filter(p => p.success).map(p => (p as any).data);
+            const parsedUsers = Object.values(usersSnapshot.val() || {}).map(u => UserSchema.safeParse(u)).filter(p => p.success).map(p => (p as any).data);
+            const parsedMaterials = Object.entries(materialsSnapshot.val() || {}).map(([id, m]) => MaterialSchema.safeParse({ id, ...(m as object) })).filter(p => p.success).map(p => (p as any).data);
+
+            const context = {
+              loans: JSON.stringify(parsedLoans),
+              users: JSON.stringify(parsedUsers),
+              materials: JSON.stringify(parsedMaterials),
+            };
+
+            const queryResult = await manageMaterial({ userQuery, context });
+            return { success: true, message: queryResult.response };
+          } catch (dbError) {
+            logger.error('admin', 'query-data-db-error', dbError);
+            return { success: false, message: 'Error al consultar los datos de la base de datos.' };
+          }
+
+        case 'NONE':
+        default:
+          return { success: false, message: 'No he podido identificar una acción clara en tu solicitud. ¿Podrías reformularla?' };
+      }
+    } catch (error) {
+        console.error("\n--- ERROR EN MAIN ROUTER FLOW (ADMIN) ---");
+        console.error(error);
+        console.error("------------------------------------------\n");
+
+        let errorDetails: any = { message: error instanceof Error ? error.message : String(error) };
+        if ((error as any).invalidResponse) errorDetails.invalidResponse = (error as any).invalidResponse;
+        if ((error as any).zodIssues) errorDetails.zodIssues = (error as any).zodIssues;
+
+        logger.error('admin', 'main-router-failed', errorDetails);
+
+        return {
+            success: false,
+            message: 'Lo siento, un error crítico me impidió procesar tu solicitud. El equipo técnico ha sido notificado.'
+        };
     }
   }
 );
