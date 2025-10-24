@@ -47,6 +47,8 @@ const RawMaterialSchema = z.object({
   anio_compra: z.number().optional(),
   proveedor: z.string().optional(),
   tipo: z.string().optional(),
+  // ADDED: imageUrl for visual assets
+  imageUrl: z.string().optional(),
 });
 
 // This schema handles the WILDLY inconsistent structures in the 'adeudos' branch
@@ -125,6 +127,8 @@ export const MaterialSchema = z.object({ id: z.string() }).merge(RawMaterialSche
   precioAjustado: data.precio_ajustado,
   anioCompra: data.anio_compra,
   proveedor: data.proveedor,
+  // ADDED: imageUrl is now part of the transformed schema
+  imageUrl: data.imageUrl,
 }));
 export type Material = z.infer<typeof MaterialSchema>;
 
@@ -168,26 +172,39 @@ const AiMaterialCardSchema = z.object({
   name: z.string().describe('El nombre del material.'),
 });
 
-// Enriched schema for use in the frontend, adding optional image URL
+// Enriched schema for use in the frontend, adding the all-important image URL
 export const EnrichedMaterialCardSchema = AiMaterialCardSchema.extend({
-  imageUrl: z.string().optional().describe('La URL de la imagen del material.'),
+  imageUrl: z.string().optional().describe('La URL de la imagen para la tarjeta del material.'),
+  // ADDED: stock for real-time availability check on the frontend
+  stock: z.number().optional().describe('La cantidad total del material.'),
 });
 
 // Final, strict output schema for the student chatbot flow
 export const ChatbotOutputSchema = z.object({
-  intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
+  // ADDED 'loanRequest' to the possible intents
+  intent: z.enum(['materialSearch', 'historyInquiry', 'loanRequest', 'greeting', 'clarification']),
   responseText: z.string(),
   materialOptions: z.array(EnrichedMaterialCardSchema).optional(),
   loansHistory: z.array(LoanSchema).optional(),
   debtsHistory: z.array(DebtSchema).optional(),
+  // ADDED: A field to carry the details of a loan being requested
+  loanRequestDetails: z.object({
+    materialId: z.string(),
+    materialName: z.string(),
+    studentMatricula: z.string(),
+    studentName: z.string(),
+    loanDate: z.string().optional(), // YYYY-MM-DD
+    returnDate: z.string().optional(), // YYYY-MM-DD
+  }).optional(),
 });
+
 
 // This does not need a raw schema as it's not stored directly in the DB.
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  materialOptions?: { id: string; name: string; imageUrl?: string }[];
+  materialOptions?: { id: string; name: string; imageUrl?: string, stock?: number }[];
   isConfirmation?: boolean;
   loanRequest?: Partial<Loan>;
   loansHistory?: Loan[];

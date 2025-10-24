@@ -25,13 +25,13 @@ const intentDetector = ai.definePrompt({
   name: 'intentDetector',
   input: { schema: z.object({ userQuery: z.string() }) },
   output: { schema: IntentSchema },
-  prompt: `Eres un experto en clasificar la intención de un administrador. Analiza la solicitud y determina la acción precisa.
+  prompt: `Eres un experto en clasificar la intención de un administrador. Analiza la solicitud y determina la acción precisa y realizala la o acciones que solicita el admin.
 
   Posibles Intenciones:
-  - 'SEND_LOAN_REMINDER': El usuario quiere ENVIAR, MANDAR o generar un RECORDATORIO sobre un PRÉSTAMO a un estudiante específico. Ej: "mándale un recordatorio a Juan", "recuérdale a Maria sobre su préstamo".
+  - 'SEND_LOAN_REMINDER': El usuario quiere ENVIAR, MANDAR o generar un RECORDATORIO sobre un PRÉSTAMO a (Nombre del alumno que el admin haya puesto). Ej: "mándale un recordatorio a (Nombre de cualquier alumno que el admin silicitó)", "recuérdale a Maria sobre su préstamo".
   - 'SEND_DEBT_NOTIFICATION': El usuario quiere ENVIAR o MANDAR una notificación masiva a TODOS los estudiantes con ADEUDOS. Ej: "notifica a todos los deudores", "avisa a los que deben dinero".
   - 'CREATE_MATERIAL': El usuario quiere AÑADIR, CREAR o REGISTRAR un nuevo material. Ej: "agrega 10 cuchillos de chef".
-  - 'QUERY_DATA': El usuario está haciendo una PREGUNTA, buscando información, o quiere VER datos. Ej: "busca los préstamos de Ana", "quién debe material", "cuántos cuchillos hay".
+  - 'QUERY_DATA': El usuario está haciendo una PREGUNTA, buscando información, o quiere VER datos. Ej: "busca los préstamos de (Cualquier nombre de alumno que el admin ponga)", "quién debe material", "cuántos cuchillos hay".
   - 'NONE': La solicitud no encaja en ninguna categoría.
 
   Instrucción Adicional:
@@ -55,7 +55,6 @@ export const mainRouterFlow = ai.defineFlow(
     try {
       const { output } = await intentDetector({ userQuery });
       
-      // ++ VALIDACIÓN ESTRICTA DE LA RESPUESTA DE LA IA ++
       const validationResult = IntentSchema.safeParse(output);
       if (!validationResult.success) {
         const validationError = new Error("La respuesta de la IA para detectar la intención no tiene el formato esperado.");
@@ -64,7 +63,7 @@ export const mainRouterFlow = ai.defineFlow(
         throw validationError;
       }
 
-      const { intent, userName } = validationResult.data; // Usamos la data validada
+      const { intent, userName } = validationResult.data;
       logger.chatbot('admin', 'intent-detected', { intent, userName });
 
       switch (intent) {

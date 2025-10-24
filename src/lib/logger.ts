@@ -3,7 +3,7 @@ type LogLevel = 'info' | 'warning' | 'error' | 'debug';
 interface LogEntry {
   timestamp: string;
   level: LogLevel;
-  type: 'admin' | 'student';
+  type: 'admin' | 'student' | 'system'; // Added 'system' type for general actions
   action: string;
   details: any;
   userId?: string;
@@ -15,7 +15,7 @@ class Logger {
 
   private createLogEntry(
     level: LogLevel,
-    type: 'admin' | 'student',
+    type: 'admin' | 'student' | 'system',
     action: string,
     details: any,
     userId?: string
@@ -36,7 +36,6 @@ class Logger {
       this.logs.pop();
     }
     
-    // También enviamos a console para desarrollo
     const logMessage = `[${entry.timestamp}] [${entry.level.toUpperCase()}] [${entry.type}] ${entry.action}`;
     switch (entry.level) {
       case 'error':
@@ -53,35 +52,53 @@ class Logger {
     }
   }
 
+  /**
+   * Logs an interaction with a chatbot.
+   */
   public chatbot(
     type: 'admin' | 'student',
-    action: string,
+    action: string, // This is the chatbot's intent
     details: any,
     level: LogLevel = 'info',
-    userId?: string
   ) {
-    const entry = this.createLogEntry(level, type, action, details, userId);
+    const entry = this.createLogEntry(level, type, `chatbot:${action}`, details, details.matricula);
     this.addLog(entry);
   }
 
+  /**
+   * Logs a system action, like a database write.
+   */
+  public action(
+    type: 'admin' | 'student' | 'system',
+    action: string,
+    details: any,
+    level: LogLevel = 'info'
+  ) {
+    const entry = this.createLogEntry(level, type, `action:${action}`, details, details.matricula);
+    this.addLog(entry);
+  }
+
+  /**
+   * Logs an error.
+   */
   public error(
-    type: 'admin' | 'student',
+    type: 'admin' | 'student' | 'system',
     action: string,
     error: Error | unknown,
-    userId?: string
+    details: any = {}
   ) {
-    const details = error instanceof Error 
-      ? { message: error.message, stack: error.stack }
-      : { error };
+    const errorDetails = error instanceof Error 
+      ? { ...details, message: error.message, stack: error.stack }
+      : { ...details, error };
     
-    const entry = this.createLogEntry('error', type, action, details, userId);
+    const entry = this.createLogEntry('error', type, `error:${action}`, errorDetails, details.matricula);
     this.addLog(entry);
   }
 
   public getLogs(
     options?: {
       level?: LogLevel;
-      type?: 'admin' | 'student';
+      type?: 'admin' | 'student' | 'system';
       userId?: string;
       limit?: number;
     }
