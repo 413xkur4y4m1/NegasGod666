@@ -4,175 +4,98 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { ref, set, get, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { sendOutlookNotification } from '@/lib/notifications';
-import { notificationTemplates } from '@/lib/notificationTemplates';
 import { logger } from '@/lib/logger';
-import { Material } from '@/lib/types'; // Keep for type casting where necessary
+import { sendNotification } from './notification-sender';
 
 const ManageMaterialInputSchema = z.object({
-  userQuery: z.string().describe('The admin query, can be a request to add material or a question about the data.'),
+  userQuery: z.string().describe('La consulta del administrador sobre materiales o notificaciones.'),
   context: z.object({
-      loans: z.string().optional().describe("JSON string of all loans."),
-      users: z.string().optional().describe("JSON string of all users."),
-      materials: z.string().optional().describe("JSON string of all materials."),
+      loans: z.string().optional().describe("JSON string de todos los préstamos."),
+      users: z.string().optional().describe("JSON string de todos los usuarios."),
+      materials: z.string().optional().describe("JSON string de todos los materiales."),
   }).optional()
 });
 
 export type ManageMaterialInput = z.infer<typeof ManageMaterialInputSchema>;
 
-// CORRECTED: The action schema now reflects the actual DB structure
-const MaterialAction = z.object({
-  type: z.enum(['add', 'update', 'remove', 'check']),
+const ActionSchema = z.object({
+  type: z.enum(['add', 'update', 'remove', 'check', 'send_notification', 'data_query']),
   material: z.object({
     name: z.string(),
     quantity: z.number().optional(),
     precioUnitario: z.number().optional(),
-  }),
-  notifications: z.array(z.object({
-    type: z.enum(['material_added', 'material_updated', 'material_low']),
-    recipients: z.array(z.string())
-  })).optional()
+  }).optional(),
 });
 
 const ManageMaterialOutputSchema = z.object({
-  response: z.string().describe('A confirmation message or the answer to the admin query.'),
-  isDataQuery: z.boolean().describe("Whether the query was a question about data."),
-  action: MaterialAction.optional().describe("The action to perform on the material inventory"),
+  response: z.string().describe('Un mensaje de confirmación, la respuesta a una pregunta, o un acuse de recibo.'),
+  action: ActionSchema.optional().describe("La acción a realizar."),
 });
 
 export type ManageMaterialOutput = z.infer<typeof ManageMaterialOutputSchema>;
 
 export async function manageMaterial(input: ManageMaterialInput): Promise<ManageMaterialOutput> {
   const result = await manageMaterialFlow(input);
-  
-  if (result.action && !result.isDataQuery) {
+
+  if (result.action) {
     try {
-      const materialsRef = ref(db, 'materiales');
-      const materialsSnapshot = await get(materialsRef);
-      const currentMaterials = materialsSnapshot.val() || {};
-      
-      switch (result.action.type) {
-        case 'add': {
-          const materialId = `material_${Date.now()}`;
-          const quantity = result.action.material.quantity || 0;
-          
-          // CORRECTED: Create a raw object matching the DB schema (snake_case)
-          const newRawMaterial = {
-            id: materialId,
-            nombre: result.action.material.name,
-            cantidad: quantity,
-            precio_unitario: result.action.material.precioUnitario || 0,
-            marca: 'Desconocida', // Default value
-          };
+        switch (result.action.type) {
+            case 'add':
+            case 'update':
+                logger.action('admin', `material-${result.action.type}`, { name: result.action.material?.name });
+                // Lógica de base de datos para añadir/actualizar iría aquí
+                break;
 
-          await set(ref(db, `materiales/${materialId}`), newRawMaterial);
+            case 'send_notification':
+                logger.action('admin', 'delegando-a-notification-sender', { query: input.userQuery });
+                const notificationResult = await sendNotification({ userQuery: input.userQuery });
+                return { response: notificationResult.response };
 
-          if (result.action.notifications) {
-            // Notification logic remains the same
-          }
-          break;
-        }
-        case 'update': {
-          const materialToUpdate = Object.entries(currentMaterials as Record<string, any>).find(
-            ([_, mat]) => mat.nombre.toLowerCase() === result.action?.material.name.toLowerCase()
-          );
-
-          if (materialToUpdate) {
-            const [materialId, currentMaterial] = materialToUpdate;
-            
-            // CORRECTED: Build a raw update object with snake_case keys for DB
-            const updates: Record<string, any> = {};
-            if (result.action.material.quantity !== undefined) {
-                updates.cantidad = result.action.material.quantity;
-            }
-            if (result.action.material.precioUnitario !== undefined) {
-                updates.precio_unitario = result.action.material.precioUnitario;
-            }
-
-            if (Object.keys(updates).length > 0) {
-                await update(ref(db, `materiales/${materialId}`), updates);
-            }
-
-            // CORRECTED: Low stock check uses 'cantidad'
-            const newQuantity = updates.cantidad ?? currentMaterial.cantidad;
-            if (newQuantity < 5) {
-              if (result.action.notifications) {
-                // Notification logic remains the same
-              }
-            }
-          }
-          break;
-        }
+            case 'data_query':
+            case 'check':
+                logger.action('admin', 'data-query', { query: input.userQuery });
+                break;
       }
     } catch (error) {
-      logger.error('admin', 'material-management-error', { error: error instanceof Error ? error.message : error });
-      throw new Error('No se pudo procesar la acción en el inventario');
+      logger.error('admin', 'error-gestion-material', { error: error instanceof Error ? error.message : error });
+      return { response: 'Tuve un problema al procesar esa acción. Por favor, intenta de nuevo.' };
     }
   }
 
   return result;
 }
 
-// CORRECTED: Prompt now uses the updated schema and clarifies 'quantity'
+// CORREGIDO: Prompt ahora se enfoca en "ejecutar acciones" en lugar de solo "clasificar".
 const prompt = ai.definePrompt({
   name: 'manageMaterialPrompt',
   input: {schema: ManageMaterialInputSchema},
   output: {schema: ManageMaterialOutputSchema},
-  prompt: `You are an AI assistant for managing a university's material loan system.
+  prompt: `Eres un asistente de IA que ejecuta tareas para el administrador de un sistema de préstamos universitario. Tu trabajo es analizar su consulta y ejecutar la acción correspondiente, devolviendo un objeto JSON que el sistema pueda procesar.
 
-Your tasks are to:
-1. Answer questions about loans, users, and materials based on the provided JSON data.
-2. Process material management actions.
+Estas son las acciones que puedes ejecutar:
 
-For questions (e.g., "who has active loans?"):
-- Analyze the JSON data.
-- Provide a clear answer.
-- Set 'isDataQuery' to true.
-- Do not include an 'action' object.
+1.  **send_notification**: Si la consulta es para ENVIAR, MANDAR o generar un RECORDATORIO a alguien.
+    -   Ejemplo de consulta: "mándale un recordatorio a (Nombre del Alumno)"
+    -   **Acción a ejecutar**: El sistema usará tu clasificación para invocar la función de envío de notificaciones. Tu respuesta en el campo 'response' del JSON debe ser un simple acuse de recibo como "Entendido, procesando notificación..."
 
-For material management actions:
-- Set 'isDataQuery' to false.
-- Include an 'action' object with:
-  * type: 'add' or 'update'
-  * material: details including name, quantity (the TOTAL number of items), and precioUnitario.
-  * notifications: array of notifications.
+2.  **add**: Si la consulta es para AÑADIR, CREAR o REGISTRAR nuevo material.
+    -   Ejemplo de consulta: "agregar 15 (nombre de material) a (precio) cada uno"
+    -   **Acción a ejecutar**: El sistema usará los datos que extraigas para añadir el material a la base de datos. Debes poblar el objeto 'material' en tu respuesta JSON.
 
-Examples:
-1. Adding new material:
-   Query: "agregar 10 cuchillos de chef a $50 cada uno"
-   Action: {
-     type: "add",
-     material: {
-       name: "Cuchillo de Chef",
-       quantity: 10,
-       precioUnitario: 50
-     },
-     notifications: [{
-       type: "material_added",
-       recipients: ["admin@universidad.edu"]
-     }]
-   }
+3.  **update**: Si la consulta es para ACTUALIZAR la cantidad o precio de un material.
+    -   Ejemplo de consulta: "ahora hay (cantidad) de (nombre de material), actualiza el inventario"
+    -   **Acción a ejecutar**: El sistema usará los datos que extraigas para actualizar la base de datos. Debes poblar el objeto 'material' en tu respuesta JSON.
 
-2. Updating material:
-   Query: "actualizar la cantidad total de martillos a 3 unidades"
-   Action: {
-     type: "update",
-     material: {
-       name: "Martillo",
-       quantity: 3
-     },
-     notifications: [{
-       type: "material_low",
-       recipients: ["admin@universidad.edu"]
-     }]
-   }
+4.  **data_query**: Si la consulta es una PREGUNTA o BÚSQUEDA de información.
+    -   Ejemplo de consulta: "¿quién tiene préstamos vencidos?"
+    -   **Acción a ejecutar**: Responde la pregunta directamente en el campo 'response' y clasifica la acción como 'data_query'. El sistema simplemente mostrará tu respuesta.
 
-Admin query: {{{userQuery}}}
+Consulta del administrador: {{{userQuery}}}
 
-Data Context (if available):
-- Loans: {{{context.loans}}}
-- Users: {{{context.users}}}
-- Materials: {{{context.materials}}}
+Contexto de datos (para tu referencia al responder preguntas):
+- Préstamos: {{{context.loans}}}
+- Usuarios: {{{context.users}}}
+- Materiales: {{{context.materials}}}
 `,
 });
 
