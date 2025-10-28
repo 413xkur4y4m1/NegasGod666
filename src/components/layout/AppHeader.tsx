@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -24,37 +23,60 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AppSidebar } from './AppSidebar';
 import { Logo } from '../shared/Logo';
 import { useEffect, useState } from 'react';
-import { onValue, ref } from 'firebase/database';
+// REFACTORED: Import necessary firebase database functions
+import { onValue, ref, query, orderByChild, equalTo, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { Loan } from '@/lib/types';
-import { differenceInDays, format, parseISO } from 'date-fns';
+// REFACTORED: Import a generic Notification type
+import type { Notification } from '@/lib/types'; 
+import { formatDistanceToNow, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function AppHeader() {
   const { user, signOut, isAdmin } = useAuth();
   const pathname = usePathname();
-  const [notifications, setNotifications] = useState<Loan[]>([]);
+  // REFACTORED: State now holds the new Notification type
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  // REFACTORED: useEffect now fetches from the correct /notificaciones collection
   useEffect(() => {
-    if (!user || isAdmin) return;
+    if (!user || !user.uid) return;
 
-    const loansRef = ref(db, `alumno/${user.matricula}/prestamos`);
-    const unsubscribe = onValue(loansRef, (snapshot) => {
-      const loans = snapshot.val();
-      if (!loans) return;
+    const notificationsRef = query(
+      ref(db, 'notificaciones'),
+      orderByChild('userId'),
+      equalTo(user.uid)
+    );
 
-      const upcomingLoans = Object.values(loans)
-        .filter((loan: any) => {
-            // CORRECTED: Changed `loan.estado` to `loan.status` to match the updated `Loan` type.
-            if (loan.status !== 'activo') return false;
-            const diff = differenceInDays(parseISO(loan.fechaLimite), new Date());
-            return diff >= 0 && diff <= 3;
-        }) as Loan[];
+    const unsubscribe = onValue(notificationsRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        setNotifications([]);
+        return;
+      }
+      const allUserNotifications = snapshot.val();
+      const unreadNotifications: Notification[] = Object.entries(allUserNotifications)
+        .map(([id, notif]: [string, any]) => ({ ...notif, id }))
+        .filter(n => !n.read)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-      setNotifications(upcomingLoans);
+      setNotifications(unreadNotifications);
     });
 
     return () => unsubscribe();
-  }, [user, isAdmin]);
+  }, [user]);
+
+  // NEW: Function to mark notifications as read
+  const handleMarkAsRead = () => {
+    if (!notifications.length) return;
+
+    const updates: Record<string, boolean> = {};
+    notifications.forEach(n => {
+        if (n.id) {
+            updates[`/notificaciones/${n.id}/read`] = true;
+        }
+    });
+
+    update(ref(db), updates).catch(err => console.error("Error marking notifications as read:", err));
+  };
 
   const getBreadcrumbs = () => {
     const paths = pathname.split('/').filter((p) => p);
@@ -66,13 +88,10 @@ export function AppHeader() {
       }
       return { href, label };
     }).filter(Boolean) as { href: string; label: string }[];
-  
     const homeCrumb = { href: isAdmin ? '/admin' : '/dashboard', label: 'Home' };
-  
     if(pathname === homeCrumb.href || (isAdmin && pathname === '/admin')){
        return [homeCrumb];
     }
-  
     return [homeCrumb, ...breadcrumbs];
   };
 
@@ -88,13 +107,12 @@ export function AppHeader() {
   };
   
   const formatTimeAgo = (dateString: string) => {
-      const date = parseISO(dateString);
-      const now = new Date();
-      const diffDays = differenceInDays(date, now);
-
-      if (diffDays === 0) return 'Hoy';
-      if (diffDays === 1) return 'Mañana';
-      return `en ${diffDays} días`;
+    try {
+        const date = parseISO(dateString);
+        return formatDistanceToNow(date, { addSuffix: true, locale: es });
+    } catch (error) {
+        return "hace un momento";
+    }
   }
 
   return (
@@ -133,7 +151,8 @@ export function AppHeader() {
 
       <div className="flex items-center gap-4">
         {!isAdmin && (
-            <Popover>
+            // REFACTORED: Added onOpenChange to trigger mark as read
+            <Popover onOpenChange={(open) => { if (!open) handleMarkAsRead() }}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
@@ -145,20 +164,28 @@ export function AppHeader() {
                 )}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
+            <PopoverContent className="w-80 md:w-96 max-h-[60vh] overflow-y-auto">
                 <div className="grid gap-4">
                 <div className="space-y-2">
                     <h4 className="font-medium leading-none">Notificaciones</h4>
                     <p className="text-sm text-muted-foreground">
-                        {notifications.length > 0 ? `Tienes ${notifications.length} préstamos por vencer.` : 'No tienes notificaciones nuevas.'}
+                        {notifications.length > 0 ? `Tienes ${notifications.length} notificaciones no leídas.` : 'No tienes notificaciones nuevas.'}
                     </p>
                 </div>
                 <div className="grid gap-2">
-                    {notifications.map(loan => (
-                         <div key={loan.idPrestamo} className="text-sm p-2 bg-yellow-100/50 border border-yellow-200 rounded-md text-yellow-800">
-                           Tu préstamo de <strong>{loan.nombreMaterial}</strong> vence {formatTimeAgo(loan.fechaLimite)}.
-                        </div>
-                    ))}
+                    {/* REFACTORED: Displaying real notifications from state */}
+                    {notifications.length > 0 ? (
+                        notifications.map(n => (
+                            <div key={n.id} className="mb-2 p-3 rounded-lg border bg-card text-card-foreground shadow-sm">
+                                <p className="font-semibold text-sm">{n.subject}</p>
+                                {/* Using dangerouslySetInnerHTML because the AI generates safe HTML */}
+                                <div className="text-xs text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: n.message.split('<img')[0] }} />
+                                <p className="text-right text-[10px] text-gray-400 mt-2">{formatTimeAgo(n.timestamp)}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center text-sm text-muted-foreground py-4">¡Estás al día!</div>
+                    )}
                 </div>
                 </div>
             </PopoverContent>

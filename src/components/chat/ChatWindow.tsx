@@ -7,11 +7,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
-// CORRECTED: Import the schema from the single source of truth
 import { ChatMessage as ChatMessageType, Loan, Debt, ChatbotOutputSchema } from '@/lib/types';
 import { ChatMessage } from './ChatMessage';
 import { nanoid } from 'nanoid';
-import { createLoan } from '@/lib/actions';
+// CORRECTED IMPORT: Point to the new, correct action file.
+import { createLoan } from '@/app/actions/loan'; 
 import { z } from 'zod';
 
 export function ChatWindow() {
@@ -73,7 +73,6 @@ export function ChatWindow() {
       setMessages((prev) => [...prev, newAssistantMessage]);
 
     } catch (error: any) {
-      console.error('[ChatWindow] Error general:', error);
       const errorAssistantMessage: ChatMessageType = {
         id: nanoid(),
         role: 'assistant',
@@ -90,64 +89,53 @@ export function ChatWindow() {
     }
   };
 
-  const handleSelectMaterial = (material: { id: string; name: string }) => {
+  // REWRITTEN LOGIC: This function now directly handles the loan creation.
+  const handleSelectMaterial = async (material: { id: string; name: string }) => {
     if (!user) return;
-    
-    const loanRequest: Partial<Loan> = {
-      idMaterial: material.id,
-      nombreMaterial: material.name,
-      matriculaAlumno: user.matricula,
-      nombreAlumno: user.nombre,
-      status: 'pendiente',
-    };
-
-    const confirmationMessage: ChatMessageType = {
-      id: nanoid(),
-      role: 'assistant',
-      content: `Perfecto, estás solicitando: **${material.name}**. Por favor, dime para qué materia es y cuándo lo devolverás.`,
-      isConfirmation: true,
-      loanRequest: loanRequest,
-    };
-    setMessages(prev => [...prev, confirmationMessage]);
-  };
-  
-  const handleLoanConfirmation = async (loanRequest: Partial<Loan>, materia: string, fechaLimite: string) => {
-    if (!user) return;
-
-    const finalLoanRequest: Partial<Loan> = {
-      ...loanRequest,
-      materia,
-      fechaLimite: fechaLimite,
-      fechaPrestamo: new Date().toISOString().split('T')[0],
-    };
 
     setIsLoading(true);
+    const optimisticMessage: ChatMessageType = {
+        id: nanoid(),
+        role: 'assistant',
+        content: `Procesando tu solicitud para **${material.name}**...`,
+    };
+    setMessages(prev => [...prev, optimisticMessage]);
+
     try {
-        await createLoan(finalLoanRequest as Loan);
-        const confirmationMessage: ChatMessageType = {
-            id: nanoid(),
-            role: 'assistant',
-            content: `Tu solicitud de préstamo para **${finalLoanRequest.nombreMaterial}** ha sido enviada con éxito. Te notificaremos cuando sea aprobada.`,
+      // Call the new, corrected server action
+      const result = await createLoan({ 
+        materialId: material.id,
+        studentMatricula: user.matricula 
+      });
+
+      if (result.success) {
+        const successMessage: ChatMessageType = {
+          id: nanoid(),
+          role: 'assistant',
+          content: `✅ ¡Listo! El préstamo de **${material.name}** ha sido registrado. Pasa al pañol a recogerlo.`,
         };
-        setMessages(prev => [...prev, confirmationMessage]);
+        setMessages(prev => [...prev, successMessage]);
         toast({
-            title: "Solicitud de Préstamo Creada",
-            description: "Tu solicitud ha sido registrada y está pendiente de aprobación.",
+          title: "Préstamo Registrado",
+          description: "Puedes pasar a recoger tu material.",
         });
-    } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Error al crear préstamo",
-            description: "No se pudo registrar tu solicitud. Intenta de nuevo.",
-        });
-         const errorMessage: ChatMessageType = {
-            id: nanoid(),
-            role: 'assistant',
-            content: `Hubo un error al procesar tu solicitud para **${finalLoanRequest.nombreMaterial}**. Por favor, intenta de nuevo más tarde.`,
-        };
-        setMessages(prev => [...prev, errorMessage]);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+      const errorMessage: ChatMessageType = {
+        id: nanoid(),
+        role: 'assistant',
+        content: `❌ Hubo un error al registrar tu préstamo para **${material.name}**: ${error.message}`,
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      toast({
+        variant: "destructive",
+        title: "Error en el Préstamo",
+        description: error.message || "No se pudo procesar la solicitud.",
+      });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -160,7 +148,8 @@ export function ChatWindow() {
               key={message.id}
               message={message}
               onSelectMaterial={handleSelectMaterial}
-              onLoanConfirmation={handleLoanConfirmation}
+              // REMOVED: onLoanConfirmation is no longer needed.
+              onLoanConfirmation={() => {}} 
             />
           ))}
           {isLoading && (

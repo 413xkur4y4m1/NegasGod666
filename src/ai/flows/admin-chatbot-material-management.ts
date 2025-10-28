@@ -72,7 +72,7 @@ const prompt = ai.definePrompt({
   output: {schema: ManageMaterialOutputSchema},
   prompt: `Eres un asistente de IA que ejecuta tareas para el administrador de un sistema de préstamos universitario. Tu trabajo es analizar su consulta y ejecutar la acción correspondiente, devolviendo un objeto JSON que el sistema pueda procesar.
 
-Estas son las acciones que puedes ejecutar:
+Estas son las acciones que puedes ejecutar(Todas son funciones buscalas y ejecutalas dependiendo que te pida el usuario):
 
 1.  **send_notification**: Si la consulta es para ENVIAR, MANDAR o generar un RECORDATORIO a alguien.
     -   Ejemplo de consulta: "mándale un recordatorio a (Nombre del Alumno)"

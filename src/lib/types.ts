@@ -163,6 +163,17 @@ export const DebtSchema = RawDebtSchema.transform(data => {
 });
 export type Debt = z.infer<typeof DebtSchema>;
 
+// --- NOTIFICATIONS INTERFACE (NEW) ---
+
+export interface Notification {
+    id: string;
+    userId: string;
+    type: string;
+    subject: string;
+    message: string;
+    timestamp: string;
+    read: boolean;
+}
 
 // --- CHATBOT & CHAT INTERFACES ---
 
