@@ -1,13 +1,13 @@
 
-import { mainRouterFlow } from '@/ai/flows/main-router';
+import { manageMaterial } from '@/ai/flows/admin-chatbot-material-management';
 import { NextResponse } from 'next/server';
 
 /**
  * @swagger
  * /api/admin/chat:
  *   post:
- *     summary: Interacts with the admin chatbot AI flow.
- *     description: Receives a user query, processes it through the mainRouterFlow, and returns the AI's response.
+ *     summary: Interacts with the admin chatbot AI flow for materials management.
+ *     description: Receives a user query, processes it through the manageMaterial flow, and returns the AI's response.
  *     requestBody:
  *       required: true
  *       content:
@@ -17,8 +17,8 @@ import { NextResponse } from 'next/server';
  *             properties:
  *               userQuery:
  *                 type: string
- *                 description: The query text from the administrator.
- *                 example: "mandale un recordatorio a Daniel Alejandro"
+ *                 description: The query text from the administrator for managing materials.
+ *                 example: "Busca el material 'Aceite de Oliva'"
  *     responses:
  *       200:
  *         description: Successful response from the AI.
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     }
 
     // Execute the flow and wait for the complete result.
-    const result = await mainRouterFlow({ userQuery });
+    const result = await manageMaterial({ userQuery });
 
     // Explicitly return the result as a single JSON object.
     // NextResponse.json handles JSON.stringify and sets the correct headers.
