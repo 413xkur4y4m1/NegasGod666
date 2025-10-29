@@ -11,8 +11,8 @@ export default function NotificationTester() {
   const { toast } = useToast();
 
   const sendNotification = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await fetch('/api/ai/send-notification', {
         method: 'POST',
         headers: {
@@ -21,15 +21,25 @@ export default function NotificationTester() {
         body: JSON.stringify({ query: instruction }),
       });
 
+      // Primero, validamos si la respuesta es OK y realmente es JSON.
+      if (!response.ok) {
+        // Si el servidor envía un error, intentamos leerlo, si no, usamos el status.
+        const errorData = await response.json().catch(() => null); 
+        throw new Error(errorData?.error || `Error del servidor: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
 
-      if (data.success) {
+      // Segundo, validamos que el objeto data exista antes de usarlo.
+      if (data?.success) {
         toast({
-          title: 'Notificación enviada',
-          description: data.message,
+          title: 'Notificación Procesada',
+          // Usamos fusión de nulos para asegurar que siempre haya un string.
+          description: data.message ?? 'El proceso se completó pero no hubo un mensaje de vuelta.',
         });
       } else {
-        throw new Error(data.error || 'Error al enviar la notificación');
+        // Hacemos lo mismo para el mensaje de error.
+        throw new Error(data?.error || 'Ocurrió un error inesperado al procesar la respuesta.');
       }
     } catch (error) {
       toast({
