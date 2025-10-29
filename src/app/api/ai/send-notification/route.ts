@@ -16,10 +16,10 @@ export async function POST(request: Request) {
       userQuery: body.query
     });
 
+    // La respuesta del flujo ahora solo contiene la propiedad 'response'
     return NextResponse.json({
       success: true,
-      message: result.response,
-      notification: result.notification
+      message: result.response
     });
   } catch (error) {
     console.error('Error al procesar la notificación:', error);
