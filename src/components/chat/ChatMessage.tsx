@@ -2,14 +2,14 @@
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import type { ChatMessage as ChatMessageType, Loan, Debt } from '@/lib/types';
-import { Bot, User as UserIcon, CheckCircle, Clock, AlertTriangle, XCircle, HandCoins, CalendarDays, BookText } from 'lucide-react';
+import { Bot, CheckCircle, Clock, AlertTriangle, XCircle, HandCoins, CalendarDays, BookText } from 'lucide-react';
 import Image from 'next/image';
-import { Logo } from '../shared/Logo';
+import { Logo } from '@/components/shared/Logo';
 import { Badge } from '@/components/ui/badge';
 
 // --- Interfaces y Props ---
@@ -19,10 +19,9 @@ interface ChatMessageProps {
   onLoanConfirmation: (loanRequest: Partial<Loan>, materia: string, fechaLimite: string) => void;
 }
 
-// --- Componentes de Tarjetas de Historial (NUEVO) ---
+// --- Componentes de Tarjetas de Historial ---
 
 function LoanHistoryCard({ loan }: { loan: Loan }) {
-  // CORRECTED: Changed `estado` to `status` to match the updated `Loan` type.
   const getStatusIcon = (status: Loan['status']) => {
     switch (status) {
       case 'activo': return <Clock className="h-4 w-4 text-blue-500" />;
@@ -37,13 +36,11 @@ function LoanHistoryCard({ loan }: { loan: Loan }) {
   return (
     <Card className="w-full text-sm">
       <CardHeader className="flex-row items-center gap-4 p-4">
-        {/* CORRECTED: Changed `loan.estado` to `loan.status` */}
         <div className="flex-shrink-0">{getStatusIcon(loan.status)}</div>
         <div className="flex-grow">
           <p className="font-semibold">{loan.nombreMaterial}</p>
           <p className="text-xs text-muted-foreground">Materia: {loan.materia || 'N/A'}</p>
         </div>
-        {/* CORRECTED: Changed `loan.estado` to `loan.status` */}
         <Badge variant="outline" className="capitalize flex-shrink-0">{loan.status}</Badge>
       </CardHeader>
       <CardContent className="p-4 border-t text-xs grid grid-cols-2 gap-2">
@@ -55,7 +52,6 @@ function LoanHistoryCard({ loan }: { loan: Loan }) {
 }
 
 function DebtHistoryCard({ debt }: { debt: Debt }) {
-  // CORRECTED: Changed `debt.estado` to `debt.status`
   const isPaid = debt.status === 'pagado';
   return (
     <Card className={`w-full text-sm ${isPaid ? 'bg-green-50/50' : 'bg-red-50/50'}`}>
@@ -71,7 +67,6 @@ function DebtHistoryCard({ debt }: { debt: Debt }) {
                 <p className={`font-bold text-lg ${isPaid ? 'text-green-600' : 'text-red-600'}`}>
                     ${debt.monto.toFixed(2)}
                 </p>
-                 {/* CORRECTED: Changed `debt.estado` to `debt.status` */}
                  <Badge variant={isPaid ? 'default' : 'destructive'} className="capitalize">{debt.status}</Badge>
             </div>
         </CardHeader>
@@ -143,7 +138,7 @@ export function ChatMessage({ message, onSelectMaterial, onLoanConfirmation }: C
           </Card>
         )}
 
-        {/* -- Renderizado de Historial de Préstamos y Adeudos (NUEVO) -- */}
+        {/* -- Renderizado de Historial de Préstamos y Adeudos -- */}
         {(message.loansHistory || message.debtsHistory) && (
             <div className="w-full space-y-3 mt-2">
                 {message.loansHistory && message.loansHistory.length > 0 && (
@@ -164,7 +159,7 @@ export function ChatMessage({ message, onSelectMaterial, onLoanConfirmation }: C
       </div>
       {!isAssistant && (
         <Avatar className="h-10 w-10">
-          <AvatarImage src={user?.photoURL || ''} alt={user?.nombre} />
+          <AvatarImage src={user?.photoURL || ''} alt={user?.nombre || 'Avatar de usuario'} />
           <AvatarFallback>{user?.nombre?.substring(0, 2) || 'U'}</AvatarFallback>
         </Avatar>
       )}

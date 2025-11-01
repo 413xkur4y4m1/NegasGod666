@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sendNotification } from '@/ai/flows/notification-sender';
+import { notificationSenderFlow } from '@/ai/flows/notification-sender';
 
 export async function POST(request: Request) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await sendNotification({
+    const result = await notificationSenderFlow({
       userQuery: body.query
     });
 

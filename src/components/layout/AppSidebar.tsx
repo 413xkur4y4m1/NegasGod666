@@ -14,6 +14,7 @@ import {
   Users,
   Home,
   User,
+  ShieldAlert
 } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,7 @@ import { Logo } from '@/components/shared/Logo';
 const studentNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/prestamos', label: 'Mis Préstamos', icon: GanttChartSquare },
+  { href: '/dashboard/adeudos', label: 'Mis Adeudos', icon: ShieldAlert },
   { href: '/profile', label: 'Mi Perfil', icon: User },
 ];
 

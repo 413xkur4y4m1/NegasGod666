@@ -1,166 +1,187 @@
+'use server';
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { db } from '@/lib/firebase';
-import { ref, get } from 'firebase/database';
+import { ref, get, push, set } from 'firebase/database';
 import { logger } from '@/lib/logger';
-// CORRECTED: Import all data structures, including the chatbot-specific ones, from the single source of truth.
-import { 
-    Loan, 
-    Debt, 
-    Material, 
-    User, 
-    LoanSchema, 
-    DebtSchema, 
-    MaterialSchema, 
-    UserSchema,
-    ChatbotOutputSchema, // Imported from types.ts
-    EnrichedMaterialCardSchema // Imported from types.ts
+import {
+  Debt,
+  Material,
+  User,
+  ChatbotOutputSchema,
+  MaterialSchema,
+  LoanSchema,
+  Loan,
 } from '@/lib/types';
 
-// --- INPUT SCHEMA ---
+// --- Esquemas y Tipos ---
 const ChatbotInputSchema = z.object({
-  userQuery: z.string().describe('La pregunta o solicitud del alumno.'),
-  studentMatricula: z.string().describe('La matrícula del alumno que realiza la consulta.'),
+  userQuery: z.string(),
+  studentMatricula: z.string(),
+  selectedMaterialId: z.string().optional(),
+  materia: z.string().optional(),
 });
 
-// --- AI-SPECIFIC SCHEMAS (Internal to this flow) ---
-
-// Schema for the raw material options from the AI model itself.
-const AiMaterialCardSchema = z.object({
-  id: z.string().describe('El ID único del material.'),
-  name: z.string().describe('El nombre del material.'),
-});
-
-// Schema for the raw, direct output from the AI model.
+const AiMaterialCardSchema = z.object({ id: z.string(), name: z.string() });
 const AiOutputSchema = z.object({
-  intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification']),
+  intent: z.enum(['materialSearch', 'historyInquiry', 'greeting', 'clarification', 'loanContinuation', 'loanRequest']),
   responseText: z.string(),
   materialOptions: z.array(AiMaterialCardSchema).optional(),
 });
-
-// --- AI PROMPT ---
-const studentChatRouterPrompt = ai.definePrompt({
-  name: 'studentChatRouterPrompt',
-  input: { schema: z.object({ /* ... */ }) }, // Input is passed dynamically
-  output: { schema: AiOutputSchema },
-  prompt: `
-    Eres GASTROBOT, un asistente de IA para el pañol (almacén de materiales) de la Licenciatura en Gastronomía. Tu propósito es ayudar a los estudiantes con sus consultas sobre préstamos de utensilios y herramientas de cocina utilizaras las funciones correspondientes dependiendo de que pida el usuario.
-
-    ROL Y OBJETIVO:
-    - Tu nombre es GASTROBOT.
-    - El estudiante con el que hablas se llama: {{studentName}}.
-    - Debes analizar la consulta del estudiante ({{userQuery}}) y clasificarla en una de las siguientes intenciones: \'materialSearch\', \'historyInquiry\', \'greeting\', o \'clarification\'.
-    - Debes usar la información de contexto proporcionada para realizar acciones  útiles.
-    - Siempre debes ser cortés, servicial y usar un tono apropiado para un ambiente universitario.
-
-    INFORMACIÓN DE CONTEXTO:
-    1.  Materiales Disponibles: Un listado en formato JSON de los utensilios que se pueden prestar. El \'stock\' indica la cantidad total, no la disponible. Si un material existe, se puede solicitar.
-        \`\`\`json
-        {{availableMaterials}}
-        \`\`\`
-    2.  Historial de Préstamos del Estudiante: Un listado  en formato JSON con los préstamos actuales del estudiante.
-        \`\`\`json
-        {{studentLoans}}
-        \`\`\`
-    3.  Historial de Adeudos del Estudiante: Un listado en formato JSON con los adeudos pendientes del estudiante (por material perdido o dañado).
-        \`\`\`json
-        {{studentDebts}}
-        \`\`\`
-
-    REGLAS DE DECISIÓN DE INTENCIÓN:
-    -   \'greeting\': Usa esta intención si el usuario solo dice hola, da las gracias o inicia una conversación sin una pregunta específica.
-    -   \'materialSearch\': Usa esta intención si la consulta del usuario es sobre buscar, pedir, solicitar, o preguntar por la disponibilidad de utensilios o herramientas (ej: \'¿tienen cuchillos?\', \'quiero un soplete\', \'qué paellas hay\').
-    -   \'historyInquiry\': Usa esta intención si el usuario pregunta sobre sus préstamos activos, su historial o sus adeudos (ej: \'¿qué debo?\', \'revisar mis préstamos\', \'cuándo tengo que devolver el soplete\').
-    -   \'clarification\': Usa esta intención si la pregunta es ambigua, no se relaciona con el español, o no puedes entenderla.
-
-    FORMATO DE RESPUESTA (IMPORTANTE):
-    Debes responder en un formato JSON que se ajuste estrictamente al esquema de salida.
-
-    -   Para la intención \'materialSearch\':
-        -   Analiza la consulta para identificar qué utensilio(s) busca el estudiante.
-        -   Busca coincidencias en la lista de \'availableMaterials\'. Puedes buscar por nombre, tipo, etc.
-        -   Si encuentras materiales, responde con un texto amigable y llena el campo \'materialOptions\' con los objetos de los materiales encontrados (incluyendo su \'id\' y \'name\').
-        -   Si no encuentras el material, informa al estudiante amablemente que no está disponible o que intente con otro nombre.
-        -   Si el usuario pide algo genérico como \'materiales\', ofrécele algunas categorías o ejemplos basados en la lista.
-    -   Para la intención \'historyInquiry\':
-        -   Formula una respuesta resumiendo la información de los JSON \'studentLoans\' y \'studentDebts\'. NO repitas los JSON en tu respuesta, extrae la información y preséntala de forma clara y concisa.
-    -   Para la intención \'greeting\':
-        -   Responde con un saludo amigable. Preséntate como GASTROBOT y pregunta en qué puedes ayudar.
-    -   Para la intención \'clarification\':
-        -   Pide al estudiante que reformule su pregunta. Sé amable.
-
-    EJEMPLOS:
-    -   Query: "que onda"
-        -   Intent: "greeting"
-        -   ResponseText: "¡Hola {{studentName}}! Soy GASTROBOT, tu asistente del pañol de Gastronomía. ¿Qué utensilio buscas hoy?"
-    -   Query: "tienen cuchillos cebolleros?"
-        -   Intent: "materialSearch"
-        -   ResponseText: "¡Hola! Sí, encontré estos cuchillos disponibles. ¡Échales un vistazo!"
-        -   materialOptions: (lista de objetos de cuchillos del JSON 'availableMaterials')
-    -   Query: "revisar mis prestamos"
-        -   Intent: "historyInquiry"
-        -   ResponseText: "Claro, {{studentName}}. Reviso tu cuenta... Según mis registros, tienes estos préstamos activos: [resume los préstamos]. Y estos son tus adeudos pendientes: [resume los adeudos]."
-
-    TAREA:
-    Analiza la consulta \'{{userQuery}}\' y la información de contexto. Genera una accion utilizando la funcion que identificaste y dala comorespuesta JSON válida, precisa y útil.
-  ` // The full prompt is managed by Genkit Cloud
+const StudentChatPromptInputSchema = z.object({
+  userQuery: z.string(),
+  studentName: z.string(),
+  availableMaterials: z.string(),
+  studentLoans: z.string(),
+  studentDebts: z.string(),
 });
 
-// --- MAIN FLOW FUNCTION ---
+const dateExtractorPrompt = ai.definePrompt({
+  name: 'dateExtractorPrompt',
+  input: { schema: z.object({ userText: z.string(), currentDate: z.string() }) },
+  output: { schema: z.object({ extractedDate: z.string().describe('Fecha en formato AAAA-MM-DD') }) },
+  prompt: `Eres un experto en extraer fechas de texto. Analiza el siguiente texto y devuelve la fecha mencionada en formato AAAA-MM-DD. Hoy es {{currentDate}}. Texto del usuario: "{{userText}}"`,
+});
+
+// --- PROMPT MEJORADO Y DETALLADO ---
+const studentChatRouterPrompt = ai.definePrompt({
+  name: 'studentChatRouterPrompt',
+  input: { schema: StudentChatPromptInputSchema },
+  output: { schema: AiOutputSchema },
+  prompt: `
+    Eres GASTROBOT, un asistente de IA para el pañol de Gastronomía. Tu nombre es GASTROBOT y hablas con {{studentName}}.
+    Tu objetivo es analizar su consulta ({{userQuery}}), clasificarla en una intención y formular una respuesta útil y amigable.
+
+    INFORMACIÓN DE CONTEXTO:
+    - Materiales Disponibles: \`\`\`json {{availableMaterials}} \`\`\`
+    - Sus Préstamos Activos: \`\`\`json {{studentLoans}} \`\`\`
+    - Sus Adeudos Pendientes: \`\`\`json {{studentDebts}} \`\`\`
+
+    REGLAS DE INTENCIÓN Y RESPUESTA:
+
+    1. **greeting**: Si el usuario solo saluda o inicia una conversación casual.
+       - **Acción**: Responde con un saludo amigable. Ejemplo: "¡Hola, {{studentName}}! Soy GASTROBOT, ¿en qué te puedo ayudar hoy?"
+
+    2. **materialSearch**: Si el usuario busca, pide o pregunta por la disponibilidad de utensilios.
+       - **Acción**: Analiza la consulta, busca en 'availableMaterials' y, si encuentras coincidencias, llena el campo 'materialOptions' en el JSON de salida. En 'responseText', informa al usuario que encontraste opciones.
+
+    3. **historyInquiry**: Si el usuario pregunta sobre su historial, préstamos o adeudos.
+       - **Acción**: Genera un 'responseText' que resuma la información de 'studentLoans' y 'studentDebts'. **IMPORTANTE: Debes formatear este resumen en HTML.**
+       - **Ejemplo de formato para la respuesta HTML**:
+         \`\`\`html
+         <p>¡Claro! Aquí tienes un resumen de tu historial:</p>
+         <h4>Préstamos Activos</h4>
+         {{#if studentLoans}}
+           {{#each studentLoans}}
+             <div style="border: 1px solid #ddd; border-left: 5px solid #007bff; padding: 10px; margin-bottom: 10px;">
+               <p><strong>Material:</strong> {{this.name}}</p>
+               <p><strong>Estado:</strong> <span style="color: #007bff;">{{this.state}}</span></p>
+             </div>
+           {{/each}}
+         {{else}}
+           <p>No tienes préstamos activos en este momento.</p>
+         {{/if}}
+         <h4>Adeudos Pendientes</h4>
+         {{#if studentDebts}}
+           {{#each studentDebts}}
+             <div style="border: 1px solid #ddd; border-left: 5px solid #dc3545; padding: 10px; margin-bottom: 10px;">
+               <p><strong>Material:</strong> {{this.name}}</p>
+               <p><strong>Monto:</strong> <span style="color: #dc3545;">{{this.amount}}</span></p>
+             </div>
+           {{/each}}
+         {{else}}
+           <p>¡Felicidades! No tienes ningún adeudo pendiente.</p>
+         {{/if}}
+         \`\`\`
+       - Adapta el mensaje si solo tiene préstamos, solo adeudos, o ninguno.
+
+    4. **clarification**: Si la pregunta es ambigua o no la puedes entender.
+       - **Acción**: Pide al usuario que reformule su pregunta de una manera amable.
+
+    TAREA: Analiza la consulta '{{userQuery}}' y genera una respuesta JSON válida que se ajuste al esquema, usando las reglas anteriores.
+  `,
+});
+
+// --- FLUJO PRINCIPAL CONVERSACIONAL ---
 export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotInputSchema>): Promise<z.infer<typeof ChatbotOutputSchema>> {
   try {
-    const [materialsSnap, loansSnap, debtsSnap, usersSnap] = await Promise.all([
+    const [materialsSnap, usersSnap] = await Promise.all([
       get(ref(db, 'materiales')),
-      get(ref(db, 'prestamos')),
-      get(ref(db, 'adeudos')),
-      get(ref(db, 'alumno'))
+      get(ref(db, 'alumnos')),
     ]);
 
-    // --- PARSE AND TRANSFORM DATABASE DATA ---
-    const allMaterials = Object.entries(materialsSnap.val() || {})
-        .map(([id, m]) => MaterialSchema.safeParse({ id, ...(m as object) }))
-        .filter(p => p.success)
-        .map(p => (p as any).data);
-    
-    const allUsers = Object.values(usersSnap.val() || {})
-        .map(u => UserSchema.safeParse(u))
-        .filter(p => p.success)
-        .map(p => (p as any).data);
+    const allMaterials = Object.values(materialsSnap.val() || {}).map(m => MaterialSchema.parse(m));
+    const currentUser = (Object.values(usersSnap.val() || {}) as User[]).find(u => u.matricula === input.studentMatricula);
 
-    const studentLoans = Object.values(loansSnap.val() || {})
-        .map(loan => LoanSchema.safeParse(loan).data)
-        .filter((loan): loan is Loan => !!loan && loan.matriculaAlumno === input.studentMatricula);
-
-    const studentDebts = Object.values(debtsSnap.val() || {})
-        .map(debt => DebtSchema.safeParse(debt).data)
-        .filter((debt): debt is Debt => !!debt && debt.matriculaAlumno === input.studentMatricula);
-
-    const currentUser = allUsers.find(u => u.matricula === input.studentMatricula);
-    const studentName = currentUser?.nombre || 'alumno';
-
-    // --- CALL THE AI MODEL ---
-    const { output: aiResponse } = await studentChatRouterPrompt({
-        userQuery: input.userQuery,
-        studentName,
-        availableMaterials: JSON.stringify(allMaterials.map(m => ({ id: m.id, name: m.nombre }))),
-        studentLoans: JSON.stringify(studentLoans.map(l => ({ name: l.nombreMaterial, state: l.status }))),
-        studentDebts: JSON.stringify(studentDebts.map(d => ({ name: d.nombreMaterial, amount: d.monto }))),
-    });
-
-    // --- VALIDATE AND PROCESS AI RESPONSE ---
-    const validationResult = AiOutputSchema.safeParse(aiResponse);
-
-    if (!validationResult.success) {
-      const validationError = new Error("La respuesta de la IA no tiene el formato esperado.");
-      (validationError as any).invalidResponse = aiResponse;
-      (validationError as any).zodIssues = validationResult.error.issues;
-      throw validationError;
+    if (!currentUser) {
+      return { intent: 'clarification', responseText: 'No pude verificar tu matrícula. Contacta a un administrador.' };
     }
 
-    const validatedAiResponse = validationResult.data;
+    if (input.selectedMaterialId && input.materia) {
+      const material = allMaterials.find(m => m.id === input.selectedMaterialId);
+      if (!material) {
+        return { intent: 'clarification', responseText: 'Ese material ya no parece estar disponible. ¿Buscamos otro?' };
+      }
 
-    // --- CONSTRUCT THE FINAL, STRICTLY-TYPED RESPONSE ---
+      const { output: dateExtraction } = await dateExtractorPrompt({
+        userText: input.userQuery,
+        currentDate: new Date().toISOString().split('T')[0],
+      });
+
+      if (!dateExtraction?.extractedDate) {
+        return {
+          intent: 'loanContinuation',
+          responseText: 'No entendí muy bien la fecha. ¿Podrías intentar de nuevo? Por ejemplo, "mañana" o "el próximo viernes".',
+        };
+      }
+
+      const newLoanRef = push(ref(db, 'prestamos'));
+      const newLoanData = {
+        id_prestamo: newLoanRef.key!,
+        id_material: material.id,
+        nombre_material: material.nombre,
+        matricula_alumno: currentUser.matricula,
+        nombre_alumno: currentUser.nombre,
+        fecha_prestamo: new Date().toISOString().split('T')[0],
+        fecha_limite: dateExtraction.extractedDate,
+        estado: 'activo' as const,
+        materia: input.materia,
+        precio_unitario: material.precioUnitario || 0,
+      };
+
+      await set(newLoanRef, newLoanData);
+      logger.action('student', 'loan-created', { matricula: currentUser.matricula, material: material.id });
+
+      return {
+        intent: 'loanContinuation',
+        responseText: `✅ ¡Listo, ${currentUser.nombre.split(' ')[0]}! He registrado tu préstamo de "${material.nombre}" para "${input.materia}", a devolver el ${dateExtraction.extractedDate}. ¡Pasa a recogerlo!`,
+      };
+    }
+
+    if (input.selectedMaterialId) {
+      return {
+        intent: 'loanContinuation',
+        responseText: 'Excelente elección. ¿Para qué materia lo necesitas?',
+      };
+    }
+
+    const [loansSnap, debtsSnap] = await Promise.all([
+      get(ref(db, 'prestamos')),
+      get(ref(db, 'adeudos')),
+    ]);
+    const studentLoans: Loan[] = Object.values(loansSnap.val() || []).map(l => LoanSchema.parse(l)).filter((l): l is Loan => l.matriculaAlumno === input.studentMatricula);
+    const studentDebts = Object.values(debtsSnap.val() || {}).filter((d: any) => d.matricula_alumno === input.studentMatricula) as Debt[];
+
+    const { output: aiResponse } = await studentChatRouterPrompt({
+      userQuery: input.userQuery,
+      studentName: currentUser.nombre,
+      availableMaterials: JSON.stringify(allMaterials.map(m => ({ id: m.id, name: m.nombre }))),
+      studentLoans: JSON.stringify(studentLoans.map(l => ({ name: l.nombreMaterial, state: l.status }))),
+      studentDebts: JSON.stringify(studentDebts.map(d => ({ name: d.nombreMaterial, amount: d.monto }))),
+    });
+
+    const validatedAiResponse = AiOutputSchema.parse(aiResponse);
     const finalResponse: z.infer<typeof ChatbotOutputSchema> = {
       intent: validatedAiResponse.intent,
       responseText: validatedAiResponse.responseText,
@@ -168,29 +189,20 @@ export async function chatbotAssistedLoanRequest(input: z.infer<typeof ChatbotIn
 
     if (validatedAiResponse.intent === 'materialSearch' && validatedAiResponse.materialOptions) {
       finalResponse.materialOptions = validatedAiResponse.materialOptions
-        .map(option => {
-          const realMaterial = allMaterials.find(m => m.id === option.id);
-          if (!realMaterial) return null; // Filter out options for materials that no longer exist
-          return { id: option.id, name: option.name }; // Return the enriched object
-        })
-        .filter(Boolean as any);
-    } else if (validatedAiResponse.intent === 'historyInquiry') {
-      finalResponse.loansHistory = studentLoans;
-      finalResponse.debtsHistory = studentDebts;
+        .map(option => allMaterials.find(m => m.id === option.id))
+        .filter((m): m is Material => Boolean(m))
+        .map(m => ({ id: m.id, name: m.nombre }));
     }
-    
-    logger.chatbot('student', finalResponse.intent, { matricula: input.studentMatricula, query: input.userQuery });
 
+    logger.chatbot('student', finalResponse.intent, { matricula: input.studentMatricula, query: input.userQuery });
     return finalResponse;
 
   } catch (error) {
-    console.error("\n--- ERROR EN CHATBOT DE ESTUDIANTE ---", error);
-    logger.error('student', 'chatbot-processing-failed', { message: error instanceof Error ? error.message : String(error) });
-
-    // Return a user-friendly error response that conforms to the output schema
+    const typedError = error instanceof Error ? error : new Error('Error desconocido');
+    logger.error('student', 'chatbot-processing-failed', typedError, { rawError: error });
     return {
-        intent: 'clarification',
-        responseText: 'Lo siento, un error inesperado me impidió procesar tu solicitud. Por favor, intenta de nuevo más tarde.'
+      intent: 'clarification',
+      responseText: 'Lo siento, un error inesperado me impidió procesar tu solicitud. Intenta de nuevo más tarde.',
     };
   }
 }

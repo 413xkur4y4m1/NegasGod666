@@ -6,8 +6,8 @@ import { ChefHat, GanttChartSquare, TriangleAlert, CookingPot, Sparkles } from "
 import { AdminChatWindow } from "@/components/admin/AdminChatWindow";
 import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";
-// CORRECTED: Import Zod schemas for parsing
-import { Material, Loan, User, MaterialSchema, LoanSchema, UserSchema } from "@/lib/types";
+import { Material, Loan, Debt, MaterialSchema, LoanSchema, DebtSchema } from "@/lib/types";
+import { StatCard } from "@/components/admin/StatCard"; // CORRECTED: Import the refactored component
 
 // Tipos para las estadísticas
 interface DashboardStats {
@@ -15,84 +15,81 @@ interface DashboardStats {
   availableMaterials: number;
   activeLoans: number;
   overdueLoans: number;
-  totalUsers: number;
   mostLoanedMaterial: string;
 }
 
 // Componente principal del Dashboard del Administrador
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const materialsRef = ref(db, 'materiales');
     const loansRef = ref(db, 'prestamos');
-    const usersRef = ref(db, 'usuarios');
+    const debtsRef = ref(db, 'adeudos');
 
-    const unsubscribeMaterials = onValue(materialsRef, (snapshot) => {
-      const materialsData = snapshot.val();
-      if (materialsData) {
-        // CORRECTED: Parse and validate data from Firebase
-        const materialsArray = Object.values(materialsData)
-          .map(m => MaterialSchema.safeParse(m))
-          .filter(p => p.success)
-          .map(p => (p as any).data);
-          
-        const totalMaterials = materialsArray.length;
-        const availableMaterials = materialsArray.filter(m => (m.cantidad || 0) > 0).length;
-        setStats(prev => ({ ...prev!, totalMaterials, availableMaterials }));
-      }
-    }, (err) => setError("Error al cargar materiales."));
+    const listeners = [
+      onValue(materialsRef, (snapshot) => {
+        const data = snapshot.val();
+        const parsed = data ? Object.values(data).map(m => MaterialSchema.safeParse(m)).filter(p => p.success).map(p => (p as any).data) : [];
+        setMaterials(parsed);
+      }, (err) => setError("Error al cargar materiales.")),
 
-    const unsubscribeLoans = onValue(loansRef, (snapshot) => {
-        const loansData = snapshot.val();
-        if (loansData) {
-          // CORRECTED: Parse and validate data from Firebase
-          const loansArray = Object.values(loansData)
-            .map(l => LoanSchema.safeParse(l))
-            .filter(p => p.success)
-            .map(p => (p as any).data);
+      onValue(loansRef, (snapshot) => {
+        const data = snapshot.val();
+        const parsed = data ? Object.values(data).map(l => LoanSchema.safeParse(l)).filter(p => p.success).map(p => (p as any).data) : [];
+        setLoans(parsed);
+      }, (err) => setError("Error al cargar préstamos.")),
+      
+      onValue(debtsRef, (snapshot) => {
+        const data = snapshot.val();
+        const parsed = data ? Object.values(data).map(d => DebtSchema.safeParse(d)).filter(p => p.success).map(p => (p as any).data) : [];
+        setDebts(parsed);
+      }, (err) => setError("Error al cargar adeudos.")),
+    ];
 
-            const activeLoans = loansArray.filter(p => p.status === 'activo').length;
-            const overdueLoans = loansArray.filter(p => p.status === 'vencido').length;
-
-            const materialCounts: { [key: string]: number } = {};
-            loansArray.forEach(loan => {
-                if (loan.materialName) {
-                  materialCounts[loan.materialName] = (materialCounts[loan.materialName] || 0) + 1;
-                }
-            });
-            const mostLoanedMaterial = Object.keys(materialCounts).length > 0 
-                ? Object.entries(materialCounts).sort((a, b) => b[1] - a[1])[0][0]
-                : 'N/A';
-
-            setStats(prev => ({ ...prev!, activeLoans, overdueLoans, mostLoanedMaterial }));
-        }
-    }, (err) => setError("Error al cargar préstamos."));
-
-    const unsubscribeUsers = onValue(usersRef, (snapshot) => {
-      const usersData = snapshot.val();
-      if (usersData) {
-        // CORRECTED: Parse and validate data from Firebase
-        const usersArray = Object.values(usersData)
-          .map(u => UserSchema.safeParse(u))
-          .filter(p => p.success)
-          .map(p => (p as any).data);
-
-        const totalUsers = usersArray.length;
-        setStats(prev => ({ ...prev!, totalUsers }));
-      }
-    }, (err) => setError("Error al cargar usuarios."));
-    
     setLoading(false);
 
     return () => {
-      unsubscribeMaterials();
-      unsubscribeLoans();
-      unsubscribeUsers();
+      listeners.forEach(unsubscribe => unsubscribe());
     };
   }, []);
+
+  useEffect(() => {
+    const totalMaterials = materials.length;
+    const availableMaterials = materials.filter(m => (m.cantidad || 0) > 0).length;
+    const activeLoans = loans.filter(p => p.status === 'activo').length;
+    const overdueLoans = loans.filter(p => p.status === 'pendiente').length;
+
+    const materialCounts: { [key: string]: number } = {};
+    loans.forEach(loan => {
+        if (loan.nombreMaterial) {
+          materialCounts[loan.nombreMaterial] = (materialCounts[loan.nombreMaterial] || 0) + 1;
+        }
+    });
+    debts.forEach(debt => {
+        if (debt.nombreMaterial) {
+          materialCounts[debt.nombreMaterial] = (materialCounts[debt.nombreMaterial] || 0) + 1;
+        }
+    });
+    const mostLoanedMaterial = Object.keys(materialCounts).length > 0 
+        ? Object.entries(materialCounts).sort((a, b) => b[1] - a[1])[0][0]
+        : 'N/A';
+
+    setStats({
+      totalMaterials,
+      availableMaterials,
+      activeLoans,
+      overdueLoans,
+      mostLoanedMaterial
+    });
+
+  }, [materials, loans, debts]);
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -132,7 +129,7 @@ export default function AdminDashboardPage() {
                 icon={<CookingPot className="h-6 w-6 text-primary" />} 
                 title="Material Más Popular" 
                 value={loading ? '...' : stats?.mostLoanedMaterial || 'N/A'}
-                description="Basado en el historial"
+                description="Basado en préstamos y adeudos"
             />
         </div>
 
@@ -156,25 +153,4 @@ export default function AdminDashboardPage() {
   );
 }
 
-interface StatCardProps {
-    icon: React.ReactNode;
-    title: string;
-    value: number | string;
-    description?: string;
-    isWarning?: boolean;
-}
-
-function StatCard({ icon, title, value, description, isWarning }: StatCardProps) {
-    return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className={`text-sm font-medium ${isWarning ? 'text-destructive' : ''}`}>{title}</CardTitle>
-                {icon}
-            </CardHeader>
-            <CardContent>
-                <div className={`text-2xl font-bold ${isWarning ? 'text-destructive' : ''}`}>{value}</div>
-                {description && <p className="text-xs text-muted-foreground">{description}</p>}
-            </CardContent>
-        </Card>
-    );
-}
+// CORRECTED: The StatCard component and its interface have been removed from this file.

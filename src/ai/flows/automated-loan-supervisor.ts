@@ -1,145 +1,89 @@
-'use server';
 
-import { z } from 'zod';
-import { ref, get, update, push } from 'firebase/database';
-import { db } from '../../lib/firebase';
-import { logger } from '../../lib/logger';
-import { Loan, Debt, User, LoanSchema, DebtSchema, UserSchema } from '../../lib/types';
-import { sendBulkHtmlNotifications, NotificationPayload } from '../../lib/bulk-notification-mailer';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { db } from '@/lib/firebase';
+import { ref, get, update } from 'firebase/database';
+import { Loan, User, LoanSchema, UserSchema } from '@/lib/types';
+import { logger } from '@/lib/logger';
 
-// --- CONSTANTS ---
-const LOAN_REMINDER_DAYS_BEFORE_DUE = 2;
-const LOAN_TO_DEBT_DAYS_AFTER_DUE = 7;
-const DEBT_REMINDER_INTERVAL_DAYS = 4;
+// --- ZOD SCHEMAS ---
+const SupervisorInputSchema = z.object({
+  user: UserSchema,
+  loan: LoanSchema,
+  diffDays: z.number(),
+});
 
-// --- HELPER: DATE CALCULATIONS ---
-const daysBetween = (date1: Date, date2: Date): number => {
-  const oneDay = 1000 * 60 * 60 * 24;
-  const diff = Math.round((date2.getTime() - date1.getTime()) / oneDay);
-  return diff;
-};
+const SupervisorOutputSchema = z.object({
+  decision: z.enum(['approve', 'escalate', 'remind', 'ignore']),
+  reasoning: z.string(),
+  updates: z.record(z.any()).optional(),
+});
 
-/**
- * The main function for the automated loan supervisor. 
- * This is designed to be run on a schedule (e.g., once a day).
- */
-export async function runAutomatedLoanSupervisor() {
-  logger.action('system', 'loan-supervisor-started', {});
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize to start of day
+// --- AI PROMPT ---
+const loanSupervisorPrompt = ai.definePrompt({
+  name: 'loanSupervisorPrompt',
+  input: { schema: SupervisorInputSchema },
+  output: { schema: SupervisorOutputSchema },
+  prompt: `
+    Eres un supervisor de préstamos en el sistema de inventario de una universidad.
+    Analiza la información del préstamo y del usuario para decidir la acción a tomar.
 
-  try {
-    const [loansSnap, debtsSnap, usersSnap] = await Promise.all([
-      get(ref(db, 'prestamos')),
-      get(ref(db, 'adeudos')),
-      get(ref(db, 'alumnos')),
-    ]);
+    Contexto:
+    - Usuario: {{json user}}
+    - Préstamo: {{json loan}}
+    - Días desde el préstamo: {{diffDays}}
 
-    const rawLoans = loansSnap.val() || {};
-    const rawDebts = debtsSnap.val() || {};
-    const rawUsers = usersSnap.val() || {};
+    Reglas de Decisión:
+    - Si el préstamo está \'vencido\' y han pasado más de 3 días, \'escalate\'.
+    - Si el préstamo está \'vencido\' pero han pasado 3 días o menos, \'remind\'.
+    - Si el estado es \'activo\' y han pasado más de 7 días, \'remind\'.
+    - Si el usuario tiene un historial de préstamos problemáticos (ej. multiples \'perdido\'), \'escalate\'.
+    - De lo contrario, \'approve\' o \'ignore\' si no se requiere acción.
 
-    const allUsers: User[] = Object.values(rawUsers).map(u => UserSchema.safeParse(u)).filter(p => p.success).map(p => (p as { success: true; data: User }).data);
-    
-    const notificationsToSend: NotificationPayload[] = [];
-    const updates: Record<string, any> = {};
+    Responde en formato JSON con tu decisión y razonamiento.
+  `,
+});
 
-    // Process Active Loans
-    for (const loanId in rawLoans) {
-      const parsedLoan = LoanSchema.safeParse(rawLoans[loanId]);
-      if (!parsedLoan.success) continue;
-      const loan = parsedLoan.data;
+// --- MAIN FLOW ---
+export const automatedLoanSupervisor = ai.defineFlow(
+  { name: 'automatedLoanSupervisor' },
+  async () => {
+    const loansRef = ref(db, 'prestamos');
+    const usersRef = ref(db, 'alumnos');
+    const [loansSnap, usersSnap] = await Promise.all([get(loansRef), get(usersRef)]);
+    const allLoans = loansSnap.val() || {};
+    const allUsers = usersSnap.val() || {};
 
-      if (loan.status !== 'activo') continue;
+    for (const loanId in allLoans) {
+      const rawLoan = { ...allLoans[loanId], id_prestamo: loanId };
+      const loanResult = LoanSchema.safeParse(rawLoan);
 
-      const dueDate = new Date(loan.fechaLimite);
-      const daysDiff = daysBetween(today, dueDate);
-      const student = allUsers.find(u => u.matricula === loan.matriculaAlumno);
+      if (!loanResult.success) {
+        logger.error('system', 'loan-schema-validation-failed', loanResult.error, { loanId });
+        continue;
+      }
+      const loan = loanResult.data;
 
-      if (!student) continue;
+      const rawUser = Object.values(allUsers).find((u: any) => u.matricula === loan.matriculaAlumno);
+      const userResult = UserSchema.safeParse(rawUser);
 
-      if (daysDiff > 0 && daysDiff <= LOAN_REMINDER_DAYS_BEFORE_DUE) {
-        notificationsToSend.push({ type: 'loanReminder', recipient: student, loanDetails: loan });
-      } else if (daysDiff < 0) {
-        updates[`/prestamos/${loanId}/estado`] = 'vencido';
-        notificationsToSend.push({ type: 'loanOverdue', recipient: student, loanDetails: loan });
-        logger.action('system', 'loan-marked-overdue', { loanId });
+      if (!userResult.success) {
+        logger.error('system', 'user-schema-validation-failed', userResult.error, { matricula: loan.matriculaAlumno });
+        continue;
+      }
+      const user = userResult.data;
+
+      const diffDays = Math.floor((new Date().getTime() - new Date(loan.fechaPrestamo).getTime()) / (1000 * 3600 * 24));
+
+      const { output } = await loanSupervisorPrompt({ user, loan, diffDays });
+
+      if (output?.decision === 'remind' || output?.decision === 'escalate') {
+        const updates: { [key: string]: any } = {};
+        updates[`/prestamos/${loan.idPrestamo}/estado`] = 'vencido';
+        await update(ref(db), updates);
+
+        logger.action('system', 'loan-status-updated', { loanId: loan.idPrestamo, newStatus: 'vencido' });
       }
     }
-
-    // Process Overdue Loans and convert to Debts
-    for (const loanId in rawLoans) {
-        const parsedLoan = LoanSchema.safeParse(rawLoans[loanId]);
-        if (!parsedLoan.success) continue;
-        const loan = parsedLoan.data;
-
-        if (loan.status !== 'vencido') continue;
-
-        const dueDate = new Date(loan.fechaLimite);
-        const daysOverdue = Math.abs(daysBetween(today, dueDate));
-        const student = allUsers.find(u => u.matricula === loan.matriculaAlumno);
-
-        if (!student || !loan.precioUnitario) continue;
-
-        if (daysOverdue >= LOAN_TO_DEBT_DAYS_AFTER_DUE) {
-            updates[`/prestamos/${loanId}/estado`] = 'perdido';
-            const newDebtId = push(ref(db, 'adeudos')).key;
-            if(newDebtId) {
-                // We need to create the raw object that firebase expects
-                const newRawDebt = {
-                    id: newDebtId,
-                    matricula_alumno: loan.matriculaAlumno,
-                    nombre_alumno: loan.nombreAlumno,
-                    monto: loan.precioUnitario,
-                    estado: 'pendiente',
-                    fecha_adeudo: today.toISOString(),
-                    fecha_actualizacion: today.toISOString(),
-                    id_material: loan.idMaterial,
-                    nombre_material: loan.nombreMaterial,
-                    descripcion: `Adeudo generado por no devolución del material: ${loan.nombreMaterial}.`,
-                };
-                updates[`/adeudos/${newDebtId}`] = newRawDebt;
-                // But we use the clean, parsed object for notifications
-                const newDebt = DebtSchema.parse(newRawDebt);
-                notificationsToSend.push({ type: 'newDebt', recipient: student, debtDetails: newDebt });
-                logger.action('system', 'loan-converted-to-debt', { loanId, newDebtId });
-            }
-        }
-    }
-
-    // Process Pending Debts for reminders
-    for (const debtId in rawDebts) {
-        const parsedDebt = DebtSchema.safeParse(rawDebts[debtId]);
-        if (!parsedDebt.success) continue;
-        const debt = parsedDebt.data;
-        
-        const debtDate = new Date(debt.fechaAdeudo);
-        const daysSinceCreation = daysBetween(debtDate, today);
-        const student = allUsers.find(u => u.matricula === debt.matriculaAlumno);
-
-        if (!student) continue;
-
-        if (debt.status === 'pendiente' && daysSinceCreation > 0 && daysSinceCreation % DEBT_REMINDER_INTERVAL_DAYS === 0) {
-            notificationsToSend.push({ type: 'debtReminder', recipient: student, debtDetails: debt });
-        }
-    }
-    
-    if (Object.keys(updates).length > 0) {
-      await update(ref(db), updates);
-      logger.action('system', 'database-updated', { updates });
-    }
-
-    if (notificationsToSend.length > 0) {
-      await sendBulkHtmlNotifications(notificationsToSend);
-      logger.action('system', 'notifications-sent', { count: notificationsToSend.length });
-    }
-
-    logger.action('system', 'loan-supervisor-finished', {});
-    return { success: true, message: `Supervisor run successfully. Found ${notificationsToSend.length} notifications to send.` };
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('system', 'loan-supervisor-failed', error);
-    return { success: false, message: `Supervisor failed: ${errorMessage}` };
   }
-}
+);

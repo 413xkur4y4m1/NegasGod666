@@ -1,7 +1,7 @@
 
 'use server';
 
-import { sendNotification } from '@/ai/flows/notification-sender';
+import { notificationSenderFlow } from '@/ai/flows/notification-sender';
 
 interface NotificationPayload {
   input: string;
@@ -12,7 +12,7 @@ export async function processAdminChatNotification({ input }: NotificationPayloa
     console.log(`[ProcessNotification] Procesando solicitud: "${input}"`);
 
     // Call the Genkit flow to generate and send the notification
-    const result = await sendNotification({
+    const result = await notificationSenderFlow({
       userQuery: input,
     });
 

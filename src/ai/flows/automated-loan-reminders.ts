@@ -132,8 +132,11 @@ export const loanReminderNotificationFlow = ai.defineFlow(
             const { output: notification } = await loanReminderPrompt({ user: validUser, loan, diffDays });
 
             if (notification) {
-              await sendNotificationEmail(notification);
-              await sendClientNotification(notification);
+              // CORRECCIÓN: Añadir el 'userId' al objeto de notificación antes de enviarlo.
+              const notificationPayload = { ...notification, userId: validUser.uid };
+
+              await sendNotificationEmail(notificationPayload);
+              await sendClientNotification(notificationPayload);
 
               await push(ref(db, 'notificaciones'), {
                 userId: validUser.uid,

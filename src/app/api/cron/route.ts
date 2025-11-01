@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { runAutomatedLoanSupervisor } from '@/ai/flows/automated-loan-supervisor';
+import { automatedLoanSupervisor } from '@/ai/flows/automated-loan-supervisor';
 
 export async function GET(request: Request) {
   // IMPORTANT: This is a basic security measure. 
@@ -13,7 +13,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await runAutomatedLoanSupervisor();
+    // CORREGIDO: El nombre del flujo importado es 'automatedLoanSupervisor'
+    const result = await automatedLoanSupervisor();
     return NextResponse.json(result);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

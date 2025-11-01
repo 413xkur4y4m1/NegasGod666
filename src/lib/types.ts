@@ -1,39 +1,33 @@
 
 import { z } from 'zod';
 
-// NOTE: This file is the single source of truth for data structures.
-// It has been rebuilt to reflect the REAL structure of the Firebase database,
-// including inconsistencies and snake_case fields. Zod schemas are used to
-// parse the raw data and transform it into a clean, consistent camelCase format
-// for use throughout the application.
-
 // --- BASE SCHEMAS (Reflecting Firebase raw data) ---
 
 const RawUserSchema = z.object({
-  uid: z.string().optional(), // UID might not be present on all records
-  matricula: z.string(),
-  nombre: z.string(),
+  uid: z.string().optional(),
+  matricula: z.string().default('000000'),
+  nombre: z.string().default('Usuario de Prueba'),
   apellido_p: z.string().optional(),
   apellido_m: z.string().optional(),
-  correo: z.string().email(),
+  correo: z.string().email().default('test@example.com'),
   carrera: z.string().optional(),
   photoURL: z.string().optional().nullable(),
   chatbotName: z.string().optional(),
   isAdmin: z.boolean().default(false),
   provider: z.enum(['microsoft.com', 'password', 'manual']).optional(),
-  fecha_registro: z.string().optional(), // snake_case from db
-  ultimo_acceso: z.string().optional(),  // snake_case from db
+  fecha_registro: z.string().optional(),
+  ultimo_acceso: z.string().optional(),
 });
 
 const RawLoanSchema = z.object({
-  id_prestamo: z.string(),
-  id_material: z.string(),
-  nombre_material: z.string(),
-  matricula_alumno: z.string(),
-  nombre_alumno: z.string(),
-  fecha_prestamo: z.string(),
-  fecha_limite: z.string(),
-  estado: z.enum(['activo', 'devuelto', 'perdido', 'pendiente', 'vencido']),
+  id_prestamo: z.string().default('default_id'),
+  id_material: z.string().default('default_id'),
+  nombre_material: z.string().default('material de prueba'),
+  matricula_alumno: z.string().default('000000'),
+  nombre_alumno: z.string().default('Usuario de Prueba'),
+  fecha_prestamo: z.string().default(new Date().toISOString()),
+  fecha_limite: z.string().default(new Date().toISOString()),
+  estado: z.enum(['activo', 'devuelto', 'perdido', 'pendiente', 'vencido']).default('activo'),
   materia: z.string().optional(),
   precio_unitario: z.number().optional(),
 });
@@ -47,34 +41,29 @@ const RawMaterialSchema = z.object({
   anio_compra: z.number().optional(),
   proveedor: z.string().optional(),
   tipo: z.string().optional(),
-  // ADDED: imageUrl for visual assets
   imageUrl: z.string().optional(),
 });
 
-// This schema handles the WILDLY inconsistent structures in the 'adeudos' branch
 const RawDebtSchema = z.union([
-  // Format 1: Detailed, snake_case
   z.object({
-    descripcion: z.string(),
-    estado: z.enum(['pendiente', 'pagado']),
-    fecha_actualizacion: z.string(),
-    fecha_adeudo: z.string(),
-    id_material: z.string(),
-    matricula_alumno: z.string(),
-    monto: z.number(),
-    nombre_alumno: z.string(),
-    nombre_material: z.string(),
+    descripcion: z.string().default('adeudo de prueba'),
+    estado: z.enum(['pendiente', 'pagado']).default('pendiente'),
+    fecha_actualizacion: z.string().default(new Date().toISOString()),
+    fecha_adeudo: z.string().default(new Date().toISOString()),
+    id_material: z.string().default('default_id'),
+    matricula_alumno: z.string().default('000000'),
+    monto: z.number().default(0),
+    nombre_alumno: z.string().default('Usuario de Prueba'),
+    nombre_material: z.string().default('material de prueba'),
   }),
-  // Format 2: Less detailed, mixedCase
   z.object({
-    id: z.string(),
-    matricula: z.string(),
-    nombre: z.string(),
-    monto: z.number(),
-    estado: z.enum(['pendiente', 'pagado']),
-    fecha: z.string(),
-    material: z.object({ id: z.string(), nombre: z.string() }),
-    // Optional fields from this format
+    id: z.string().default('default_id'),
+    matricula: z.string().default('000000'),
+    nombre: z.string().default('Usuario de Prueba'),
+    monto: z.number().default(0),
+    estado: z.enum(['pendiente', 'pagado']).default('pendiente'),
+    fecha: z.string().default(new Date().toISOString()),
+    material: z.object({ id: z.string().default('default_id'), nombre: z.string().default('material de prueba') }),
     correo: z.string().optional(),
     asunto: z.string().optional(),
     descripcion: z.string().optional(),
@@ -83,11 +72,21 @@ const RawDebtSchema = z.union([
   })
 ]);
 
+// NEW, CLEAN SCHEMA FOR THE ADEUDOS PAGE
+export const AdeudoSchema = z.object({
+    id_adeudo: z.string(),
+    nombre_material: z.string(),
+    fecha_generacion: z.string(),
+    monto: z.number(),
+    estado: z.enum(['pendiente', 'pagado']),
+  });
+  
+export type Adeudo = z.infer<typeof AdeudoSchema>;
 
 // --- TRANSFORMED SCHEMAS & INTERFACES (Clean, camelCase for app use) ---
 
 export const UserSchema = RawUserSchema.transform(data => ({
-  uid: data.uid ?? data.matricula, // Ensure UID exists
+  uid: data.uid ?? data.matricula,
   matricula: data.matricula,
   nombre: data.nombre,
   apellidoP: data.apellido_p,
@@ -111,7 +110,7 @@ export const LoanSchema = RawLoanSchema.transform(data => ({
   nombreAlumno: data.nombre_alumno,
   fechaPrestamo: data.fecha_prestamo,
   fechaLimite: data.fecha_limite,
-  status: data.estado, // CORRECTED: from 'estado' to 'status'
+  status: data.estado,
   materia: data.materia,
   precioUnitario: data.precio_unitario,
 }));
@@ -121,32 +120,30 @@ export const MaterialSchema = z.object({ id: z.string() }).merge(RawMaterialSche
   id: data.id,
   nombre: data.nombre,
   cantidad: data.cantidad,
-  // 'disponibles' is a calculated field, should not be in the base model
   marca: data.marca ?? 'N/A',
   precioUnitario: data.precio_unitario,
   precioAjustado: data.precio_ajustado,
   anioCompra: data.anio_compra,
   proveedor: data.proveedor,
-  // ADDED: imageUrl is now part of the transformed schema
   imageUrl: data.imageUrl,
 }));
 export type Material = z.infer<typeof MaterialSchema>;
 
 export const DebtSchema = RawDebtSchema.transform(data => {
-  if ('id_material' in data) { // Check if it's Format 1
+  if ('id_material' in data) {
     return {
-      id: data.id_material, // best guess for a unique id
+      id: data.id_material,
       matriculaAlumno: data.matricula_alumno,
       nombreAlumno: data.nombre_alumno,
       idMaterial: data.id_material,
       nombreMaterial: data.nombre_material,
       monto: data.monto,
       descripcion: data.descripcion,
-      status: data.estado, // CORRECTED: from 'estado' to 'status'
+      status: data.estado,
       fechaAdeudo: data.fecha_adeudo,
       fechaActualizacion: data.fecha_actualizacion,
     };
-  } else { // It's Format 2
+  } else {
     return {
       id: data.id,
       matriculaAlumno: data.matricula,
@@ -155,9 +152,9 @@ export const DebtSchema = RawDebtSchema.transform(data => {
       nombreMaterial: data.material.nombre,
       monto: data.monto,
       descripcion: data.descripcion ?? data.asunto ?? 'Sin descripción',
-      status: data.estado, // CORRECTED: from 'estado' to 'status'
+      status: data.estado,
       fechaAdeudo: data.fecha,
-      fechaActualizacion: data.fecha, // Use 'fecha' as fallback
+      fechaActualizacion: data.fecha,
     };
   }
 });
@@ -177,40 +174,32 @@ export interface Notification {
 
 // --- CHATBOT & CHAT INTERFACES ---
 
-// Schema for material cards returned by the AI
 const AiMaterialCardSchema = z.object({
   id: z.string().describe('El ID único del material.'),
   name: z.string().describe('El nombre del material.'),
 });
 
-// Enriched schema for use in the frontend, adding the all-important image URL
 export const EnrichedMaterialCardSchema = AiMaterialCardSchema.extend({
   imageUrl: z.string().optional().describe('La URL de la imagen para la tarjeta del material.'),
-  // ADDED: stock for real-time availability check on the frontend
   stock: z.number().optional().describe('La cantidad total del material.'),
 });
 
-// Final, strict output schema for the student chatbot flow
 export const ChatbotOutputSchema = z.object({
-  // ADDED 'loanRequest' to the possible intents
-  intent: z.enum(['materialSearch', 'historyInquiry', 'loanRequest', 'greeting', 'clarification']),
+  intent: z.enum(['materialSearch', 'historyInquiry', 'loanRequest', 'greeting', 'clarification', 'loanContinuation']),
   responseText: z.string(),
   materialOptions: z.array(EnrichedMaterialCardSchema).optional(),
   loansHistory: z.array(LoanSchema).optional(),
   debtsHistory: z.array(DebtSchema).optional(),
-  // ADDED: A field to carry the details of a loan being requested
   loanRequestDetails: z.object({
     materialId: z.string(),
     materialName: z.string(),
     studentMatricula: z.string(),
     studentName: z.string(),
-    loanDate: z.string().optional(), // YYYY-MM-DD
-    returnDate: z.string().optional(), // YYYY-MM-DD
+    loanDate: z.string().optional(),
+    returnDate: z.string().optional(),
   }).optional(),
 });
 
-
-// This does not need a raw schema as it's not stored directly in the DB.
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';

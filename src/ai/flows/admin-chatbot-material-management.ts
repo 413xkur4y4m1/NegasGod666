@@ -2,18 +2,14 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { ref, set, get, update } from 'firebase/database';
+import { ref, set, get, update, push } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
-import { sendNotification } from './notification-sender';
+import { notificationSenderFlow } from './notification-sender';
 
+// --- Esquemas ---
 const ManageMaterialInputSchema = z.object({
-  userQuery: z.string().describe('La consulta del administrador sobre materiales o notificaciones.'),
-  context: z.object({
-      loans: z.string().optional().describe("JSON string de todos los préstamos."),
-      users: z.string().optional().describe("JSON string de todos los usuarios."),
-      materials: z.string().optional().describe("JSON string de todos los materiales."),
-  }).optional()
+  userQuery: z.string().describe('La consulta del administrador.'),
 });
 
 export type ManageMaterialInput = z.infer<typeof ManageMaterialInputSchema>;
@@ -28,74 +24,106 @@ const ActionSchema = z.object({
 });
 
 const ManageMaterialOutputSchema = z.object({
-  response: z.string().describe('Un mensaje de confirmación, la respuesta a una pregunta, o un acuse de recibo.'),
-  action: ActionSchema.optional().describe("La acción a realizar."),
+  response: z.string(),
+  action: ActionSchema.optional(),
 });
 
 export type ManageMaterialOutput = z.infer<typeof ManageMaterialOutputSchema>;
 
+
+// --- Orquestador Principal ---
 export async function manageMaterial(input: ManageMaterialInput): Promise<ManageMaterialOutput> {
-  const result = await manageMaterialFlow(input);
+  const classificationResult = await manageMaterialFlow(input);
 
-  if (result.action) {
+  if (classificationResult.action) {
     try {
-        switch (result.action.type) {
-            case 'add':
-            case 'update':
-                logger.action('admin', `material-${result.action.type}`, { name: result.action.material?.name });
-                // Lógica de base de datos para añadir/actualizar iría aquí
-                break;
+      switch (classificationResult.action.type) {
+        case 'add':
+          if (!classificationResult.action.material?.name) {
+            return { response: 'No pude identificar el nombre del material para añadir.' };
+          }
+          const newMaterial = classificationResult.action.material;
+          const newMaterialRef = push(ref(db, 'materiales'));
+          await set(newMaterialRef, {
+            id: newMaterialRef.key,
+            name: newMaterial.name,
+            quantity: newMaterial.quantity || 0,
+            precioUnitario: newMaterial.precioUnitario || 0,
+          });
+          logger.action('admin', 'material-add', { name: newMaterial.name });
+          return { response: `✅ ¡Hecho! Añadí ${newMaterial.quantity || ''} ${newMaterial.name} al inventario.` };
 
-            case 'send_notification':
-                logger.action('admin', 'delegando-a-notification-sender', { query: input.userQuery });
-                const notificationResult = await sendNotification({ userQuery: input.userQuery });
-                return { response: notificationResult.response };
+        case 'update':
+          if (!classificationResult.action.material?.name) {
+            return { response: 'No pude identificar qué material actualizar.' };
+          }
+          const materialToUpdate = classificationResult.action.material;
+          const materialsRef = ref(db, 'materiales');
+          const snapshot = await get(materialsRef);
+          if (!snapshot.exists()) {
+            return { response: 'No hay materiales en la base de datos para actualizar.' };
+          }
 
-            case 'data_query':
-            case 'check':
-                logger.action('admin', 'data-query', { query: input.userQuery });
-                break;
+          const materials = snapshot.val();
+          const materialId = Object.keys(materials).find(key => materials[key].name.toLowerCase() === materialToUpdate.name.toLowerCase());
+
+          if (!materialId) {
+            return { response: `No encontré ningún material llamado "${materialToUpdate.name}". ¿Quieres añadirlo?` };
+          }
+
+          const updates: any = {};
+          if (materialToUpdate.quantity !== undefined) updates.quantity = materialToUpdate.quantity;
+          if (materialToUpdate.precioUnitario !== undefined) updates.precioUnitario = materialToUpdate.precioUnitario;
+
+          await update(ref(db, `materiales/${materialId}`), updates);
+          logger.action('admin', 'material-update', { name: materialToUpdate.name, updates });
+          return { response: `✅ ¡Listo! Actualicé la información de ${materialToUpdate.name}.` };
+
+        case 'send_notification':
+          logger.action('admin', 'delegando-a-notification-sender', { query: input.userQuery });
+          // CORREGIDO: Llama al flujo correcto con el input adecuado
+          return await notificationSenderFlow({ userQuery: input.userQuery });
+
+        case 'data_query':
+        case 'check':
+          logger.action('admin', 'data-query', { query: input.userQuery });
+          return classificationResult;
       }
     } catch (error) {
-      logger.error('admin', 'error-gestion-material', { error: error instanceof Error ? error.message : error });
-      return { response: 'Tuve un problema al procesar esa acción. Por favor, intenta de nuevo.' };
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      logger.error('admin', 'error-gestion-material', new Error(errorMessage), { rawError: error });
+      return { response: `Tuve un problema al procesar esa acción: ${errorMessage}` };
     }
   }
 
-  return result;
+  return classificationResult;
 }
 
-// CORREGIDO: Prompt ahora se enfoca en "ejecutar acciones" en lugar de solo "clasificar".
+// --- Prompt y Flujo de IA (El "Cerebro") ---
 const prompt = ai.definePrompt({
   name: 'manageMaterialPrompt',
-  input: {schema: ManageMaterialInputSchema},
-  output: {schema: ManageMaterialOutputSchema},
-  prompt: `Eres un asistente de IA que ejecuta tareas para el administrador de un sistema de préstamos universitario. Tu trabajo es analizar su consulta y ejecutar la acción correspondiente, devolviendo un objeto JSON que el sistema pueda procesar.
+  input: { schema: ManageMaterialInputSchema },
+  output: { schema: ManageMaterialOutputSchema },
+  prompt: `Eres un asistente de IA para un administrador de un sistema universitario. Tu trabajo es analizar su consulta y clasificarla en una acción ejecutable.
 
-Estas son las acciones que puedes ejecutar(Todas son funciones buscalas y ejecutalas dependiendo que te pida el usuario):
+Acciones disponibles:
 
-1.  **send_notification**: Si la consulta es para ENVIAR, MANDAR o generar un RECORDATORIO a alguien.
-    -   Ejemplo de consulta: "mándale un recordatorio a (Nombre del Alumno)"
-    -   **Acción a ejecutar**: El sistema usará tu clasificación para invocar la función de envío de notificaciones. Tu respuesta en el campo 'response' del JSON debe ser un simple acuse de recibo como "Entendido, procesando notificación..."
+1.  **send_notification**: Si la consulta es para enviar notificaciones a un individuo o a un GRUPO de usuarios (todos, con adeudos, con préstamos).
+    -   Ejemplos: "manda recordatorio a todos los que tienen adeudos", "notifica a los que tienen préstamos", "avísale a todos los alumnos", "mándale un recordatorio a Juan Pérez".
+    -   Tu respuesta debe ser un acuse de recibo como "Entendido, iniciando envío masivo...".
 
-2.  **add**: Si la consulta es para AÑADIR, CREAR o REGISTRAR nuevo material.
-    -   Ejemplo de consulta: "agregar 15 (nombre de material) a (precio) cada uno"
-    -   **Acción a ejecutar**: El sistema usará los datos que extraigas para añadir el material a la base de datos. Debes poblar el objeto 'material' en tu respuesta JSON.
+2.  **add**: Para AÑADIR o REGISTRAR nuevo material.
+    -   Ejemplo: "agregar 15 sartenes de teflón a 250 cada uno".
 
-3.  **update**: Si la consulta es para ACTUALIZAR la cantidad o precio de un material.
-    -   Ejemplo de consulta: "ahora hay (cantidad) de (nombre de material), actualiza el inventario"
-    -   **Acción a ejecutar**: El sistema usará los datos que extraigas para actualizar la base de datos. Debes poblar el objeto 'material' en tu respuesta JSON.
+3.  **update**: Para ACTUALIZAR la cantidad o precio de un material existente.
+    -   Ejemplo: "ahora hay 20 sartenes de teflón, actualiza el inventario".
 
-4.  **data_query**: Si la consulta es una PREGUNTA o BÚSQUEDA de información.
-    -   Ejemplo de consulta: "¿quién tiene préstamos vencidos?"
-    -   **Acción a ejecutar**: Responde la pregunta directamente en el campo 'response' y clasifica la acción como 'data_query'. El sistema simplemente mostrará tu respuesta.
+4.  **data_query**: Si es una PREGUNTA o BÚSQUEDA de información.
+    -   Ejemplo: "¿cuántos sartenes hay?", "¿quién tiene préstamos vencidos?".
 
-Consulta del administrador: {{{userQuery}}}
+Consulta del administrador: "{{{userQuery}}}"
 
-Contexto de datos (para tu referencia al responder preguntas):
-- Préstamos: {{{context.loans}}}
-- Usuarios: {{{context.users}}}
-- Materiales: {{{context.materials}}}
+Responde en formato JSON.
 `,
 });
 
@@ -106,7 +134,7 @@ const manageMaterialFlow = ai.defineFlow(
     outputSchema: ManageMaterialOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { output } = await prompt(input);
     return output!;
   }
 );

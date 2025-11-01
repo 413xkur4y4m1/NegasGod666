@@ -1,45 +1,60 @@
-// src/app/(app)/dashboard/prestamos/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { Loan, LoanSchema } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { format, isValid, parseISO } from 'date-fns';
 
 export default function PrestamosPage() {
   const { user } = useAuth();
-  const [loans, setLoans] = useState<Loan[]>([]);
+  const [allLoans, setAllLoans] = useState<Loan[]>([]);
+  const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !user.matricula) return;
 
-    const loansRef = ref(db, `alumno/${user.matricula}/prestamos`);
-    const unsubscribe = onValue(loansRef, (snapshot) => {
+    setLoading(true);
+    const loansRef = ref(db, 'prestamos');
+    // Usamos una query de Firebase para filtrar por matrícula del alumno, es más eficiente
+    const userLoansQuery = query(loansRef, orderByChild('matricula_alumno'), equalTo(user.matricula));
+
+    const unsubscribe = onValue(userLoansQuery, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const loanList = Object.keys(data).map(key => {
-          const parsed = LoanSchema.safeParse({ id_prestamo: key, ...data[key] });
-          if (parsed.success) {
-            return parsed.data;
-          }
-          console.warn(`Invalid loan data for key ${key}:`, parsed.error);
-          return null;
+            // Aseguramos que el ID del préstamo se asigna correctamente
+            const rawData = { id_prestamo: key, ...data[key] };
+            const parsed = LoanSchema.safeParse(rawData);
+            if (parsed.success) {
+                return parsed.data;
+            }
+            console.warn(`Datos de préstamo inválidos para la llave ${key}:`, parsed.error);
+            return null;
         }).filter((loan): loan is Loan => loan !== null);
 
-        setLoans(loanList.sort((a, b) => {
+        const sortedList = loanList.sort((a, b) => {
           const dateA = a.fechaPrestamo ? parseISO(a.fechaPrestamo).getTime() : 0;
           const dateB = b.fechaPrestamo ? parseISO(b.fechaPrestamo).getTime() : 0;
-          return dateB - dateA;
-        }));
+          return dateB - dateA; // Ordenar de más reciente a más antiguo
+        });
+
+        setAllLoans(sortedList);
+        setFilteredLoans(sortedList);
+
       } else {
-        setLoans([]);
+        setAllLoans([]);
+        setFilteredLoans([]);
       }
       setLoading(false);
     });
@@ -47,12 +62,32 @@ export default function PrestamosPage() {
     return () => unsubscribe();
   }, [user]);
 
+  useEffect(() => {
+    let result = allLoans;
+
+    // 1. Filtrar por estado
+    if (statusFilter !== 'todos') {
+      result = result.filter(loan => loan.status === statusFilter);
+    }
+
+    // 2. Filtrar por término de búsqueda (nombre del material)
+    if (searchTerm) {
+      result = result.filter(loan => 
+        loan.nombreMaterial.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredLoans(result);
+  }, [searchTerm, statusFilter, allLoans]);
+
+
   const getStatusVariant = (status: Loan['status']) => {
     switch (status) {
       case 'activo':
         return 'default';
       case 'pendiente':
-        return 'secondary';
+      case 'vencido':
+        return 'secondary'; // Se podría usar 'destructive' para vencidos
       case 'devuelto':
         return 'outline';
       case 'perdido':
@@ -75,11 +110,33 @@ export default function PrestamosPage() {
         <CardDescription>Aquí puedes ver tu historial de préstamos de materiales.</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <Input 
+            placeholder="Buscar por nombre de material..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1"
+          />
+          <Select onValueChange={setStatusFilter} defaultValue="todos">
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filtrar por estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="activo">Activo</SelectItem>
+              <SelectItem value="devuelto">Devuelto</SelectItem>
+              <SelectItem value="vencido">Vencido</SelectItem>
+              <SelectItem value="pendiente">Pendiente</SelectItem>
+              <SelectItem value="perdido">Perdido</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center h-48">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : loans.length > 0 ? (
+        ) : filteredLoans.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -90,7 +147,7 @@ export default function PrestamosPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loans.map((loan) => (
+              {filteredLoans.map((loan) => (
                 <TableRow key={loan.idPrestamo}>
                   <TableCell className="font-medium">{loan.nombreMaterial}</TableCell>
                   <TableCell>{formatDate(loan.fechaPrestamo)}</TableCell>
@@ -104,8 +161,10 @@ export default function PrestamosPage() {
           </Table>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
-            <p>No tienes préstamos registrados.</p>
-            <p className="text-sm">¡Usa el asistente en el dashboard para solicitar uno!</p>
+            <p>No tienes préstamos que coincidan con los filtros actuales.</p>
+            {allLoans.length === 0 && (
+              <p className="text-sm">O no tienes ningún préstamo registrado todavía. ¡Usa el asistente para solicitar uno!</p>
+            )}
           </div>
         )}
       </CardContent>

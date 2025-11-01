@@ -5,7 +5,6 @@ export async function POST(request: Request) {
   try {
     console.log('[API] Recibida solicitud de envío de notificación');
     
-    // Intentar obtener el cuerpo JSON de la solicitud
     let body;
     try {
       body = await request.json();
@@ -14,19 +13,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'El cuerpo de la solicitud no es JSON válido' }, { status: 400 });
     }
     
-    const { to, subject, content, recipientName } = body;
+    // CORREGIDO: Se extrae userId del cuerpo de la solicitud.
+    const { to, subject, content, userId } = body;
     
     console.log(`[API] Destino: ${to}`);
     console.log(`[API] Asunto: ${subject}`);
-    console.log(`[API] Destinatario: ${recipientName || 'No especificado'}`);
+    console.log(`[API] Usuario ID: ${userId || 'No especificado'}`);
     
-    // Validar campos requeridos
-    if (!to || !subject || !content) {
-      console.error('[API] Faltan campos requeridos:', { to, subject, contentLength: content?.length });
-      return NextResponse.json({ error: 'Faltan campos requeridos: to, subject, content' }, { status: 400 });
+    // CORREGIDO: Se valida que el userId esté presente.
+    if (!to || !subject || !content || !userId) {
+      console.error('[API] Faltan campos requeridos:', { to, subject, contentLength: content?.length, userId });
+      return NextResponse.json({ error: 'Faltan campos requeridos: to, subject, content, userId' }, { status: 400 });
     }
     
-    // Validar formato de correo electrónico básico
     if (!to.includes('@')) {
       console.error('[API] Formato de correo inválido:', to);
       return NextResponse.json({ error: `Formato de correo inválido: ${to}` }, { status: 400 });
@@ -34,21 +33,22 @@ export async function POST(request: Request) {
     
     console.log('[API] Enviando notificación a través de la acción del servidor...');
     
-    // Enviar notificación usando la acción del servidor
+    // CORREGIDO: Se llama a la función con los parámetros correctos, incluyendo userId.
+    // Se elimina `recipientName`.
     const result = await sendServerNotification({ 
       to, 
       subject, 
       content,
-      recipientName: recipientName || ''
+      userId
     });
     
-    console.log(`[API] Notificación enviada exitosamente usando método: ${result.method}`);
+    console.log(`[API] Notificación enviada exitosamente, proveedor: ${result.provider}`);
     
+    // CORREGIDO: Se ajusta la respuesta para no incluir `recipientName`.
     return NextResponse.json({
       success: true,
-      method: result.method,
+      provider: result.provider,
       id: result.id,
-      recipientName: result.recipientName
     });
     
   } catch (error) {
